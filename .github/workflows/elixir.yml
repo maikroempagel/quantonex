@@ -1,15 +1,15 @@
 name: Elixir CI
 
-on: push
-
+on:
+  push:
+    paths-ignore:
+      - '.gitignore'
+      - 'README.md'
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     container:
       image: elixir:1.9.4-slim
-
     steps:
     - uses: actions/checkout@v1
     - name: Install Dependencies
