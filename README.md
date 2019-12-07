@@ -1,3 +1,5 @@
+![](https://github.com/maikroempagel/quantonex/workflows/Elixir%20CI/badge.svg)
+
 # Quantonex
 
 **TODO: Add description**
