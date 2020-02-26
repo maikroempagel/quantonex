@@ -5,6 +5,7 @@ on:
     paths-ignore:
       - '.gitignore'
       - 'README.md'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,5 +20,12 @@ jobs:
         mix deps.get
     - name: Check formatting
       run: mix format --check-formatted
+    - name: Run linter
+      run: mix credo
     - name: Run Tests
-      run: mix test --trace
+      run: mix coveralls.html --trace
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v1
+      with:
+        name: code-coverage-report
+        path: cover/excoveralls.html
