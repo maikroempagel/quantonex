@@ -1,4 +1,8 @@
 defmodule Quantonex.DataPoint do
+  @moduledoc """
+  Contains the `Quantonex.DataPoint` type.
+  """
+
   @typedoc """
   Represents a data point of an instrument.
 
