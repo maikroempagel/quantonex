@@ -3,7 +3,14 @@ defmodule Quantonex.Indicators do
   Contains technical indicators.
   """
 
-  @doc "Calculates a simple moving average for a period that is equal to the length of the dataset."
+  @doc """
+  Calculates a simple moving average for a period that is equal to the length of the dataset.
+
+  ## Examples
+
+      iex> Quantonex.Indicators.sma([1, 2, 3])
+      {:ok, Decimal.new(2)}
+  """
   @spec sma(dataset :: list(number())) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
   def sma(dataset), do: dataset |> sma(length(dataset))
@@ -12,6 +19,17 @@ defmodule Quantonex.Indicators do
   Calculates a simple moving average for a given dataset and period.
 
   The last n elements of the dataset are used for the calculation.
+
+  ## Examples
+
+      iex> Quantonex.Indicators.sma([1, 2, 3], 2)
+      {:ok, Decimal.from_float(2.5)}
+
+      iex> Quantonex.Indicators.sma([1, 2, 3], 1)
+      {:error, "Period must be at least 2."}
+
+      iex> Quantonex.Indicators.sma([1, 2, 3], 4)
+      {:error, "Period can't be greater than the length of the dataset."}
   """
   @spec sma(dataset :: list(number()), period :: integer()) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
