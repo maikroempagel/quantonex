@@ -1,4 +1,5 @@
-![](https://github.com/maikroempagel/quantonex/workflows/Elixir%20CI/badge.svg)
+[![Build badge](https://img.shields.io/github/workflow/status/maikroempagel/quantonex/ElixirCI?label=Build)](https://github.com/maikroempagel/quantonex/actions?query=workflow%3AElixirCI)
+[![License badge](https://img.shields.io/github/license/maikroempagel/quantonex)](https://github.com/maikroempagel/quantonex/blob/master/LICENSE.txt)
 
 # Quantonex
 
