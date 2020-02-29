@@ -1,10 +1,6 @@
 name: Elixir CI
 
-on:
-  push:
-    paths-ignore:
-      - '.gitignore'
-      - 'README.md'
+on: push
 
 jobs:
   build:
@@ -12,7 +8,8 @@ jobs:
     container:
       image: elixir:1.10-slim
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout
+      uses: actions/checkout@v1
     - name: Install Dependencies
       run: |
         mix local.rebar --force
@@ -22,6 +19,21 @@ jobs:
       run: mix format --check-formatted
     - name: Run linter
       run: mix credo
+    - name: Run Tests
+      run: mix test --trace
+  code_coverage:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: elixir:1.10-slim
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Install Dependencies
+      run: |
+        mix local.rebar --force
+        mix local.hex --force
+        mix deps.get
     - name: Run Tests
       run: mix coveralls.html --trace
     - name: Archive code coverage results
@@ -33,12 +45,13 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Conventional Changelog Action
-      uses: TriPSs/conventional-changelog-action@v1.2.0
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        git-message: 'chore(release): {version}'
-        preset: 'angular'
-        output-file: 'CHANGELOG.md'
-        changelog-release-count: 0
+        node-version: 12
+    - name: Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npx semantic-release
