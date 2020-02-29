@@ -34,7 +34,7 @@ jobs:
         mix local.rebar --force
         mix local.hex --force
         mix deps.get
-    - name: Run Tests
+    - name: Run code coverage
       run: mix coveralls.html --trace
     - name: Archive code coverage results
       uses: actions/upload-artifact@v1
@@ -54,4 +54,6 @@ jobs:
     - name: Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npx semantic-release
+      run: |
+        npx semantic-release@17
+        npx uninstall @semantic-release/npm
