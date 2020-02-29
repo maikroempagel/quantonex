@@ -29,6 +29,11 @@ jobs:
       with:
         name: code-coverage-report
         path: cover/excoveralls.html
+  release:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine/git:v2.24.1
+    steps:
     - name: Conventional Changelog Action
       uses: TriPSs/conventional-changelog-action@v1.2.0
       with:
