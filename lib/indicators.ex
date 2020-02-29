@@ -13,7 +13,7 @@ defmodule Quantonex.Indicators do
     * `cumulative_volume_price` - the previous volume price plus the current volume price.
   """
   @type vwap :: %{
-          cumulative_volume: integer(),
+          cumulative_volume: non_neg_integer(),
           cumulative_volume_price: Decimal.t(),
           value: Decimal.t()
         }
@@ -26,7 +26,7 @@ defmodule Quantonex.Indicators do
       iex> Quantonex.Indicators.sma([1, 2, 3])
       {:ok, Decimal.new(2)}
   """
-  @spec sma(dataset :: list(number())) ::
+  @spec sma(dataset :: nonempty_list(number())) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
   def sma(dataset), do: dataset |> sma(length(dataset))
 
@@ -46,7 +46,7 @@ defmodule Quantonex.Indicators do
       iex> Quantonex.Indicators.sma([1, 2, 3], 4)
       {:error, "Period can't be greater than the length of the dataset."}
   """
-  @spec sma(dataset :: list(number()), period :: integer()) ::
+  @spec sma(dataset :: nonempty_list(number()), period :: pos_integer()) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
   def sma(dataset, _period) when length(dataset) < 2,
     do: {:error, "There must be at least 2 elements in the dataset."}
@@ -113,7 +113,7 @@ defmodule Quantonex.Indicators do
   """
   @spec vwap(
           data_point :: DataPoint.t(),
-          cumulative_volume :: integer(),
+          cumulative_volume :: non_neg_integer(),
           cumulative_volume_price :: Decimal.t()
         ) ::
           {:error, reason :: String.t()} | {:ok, value :: vwap()}
