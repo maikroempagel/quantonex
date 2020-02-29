@@ -1,4 +1,4 @@
-name: Elixir CI
+name: ElixirCI
 
 on: push
 
@@ -41,19 +41,19 @@ jobs:
       with:
         name: code-coverage-report
         path: cover/excoveralls.html
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Setup Node.js
-      uses: actions/setup-node@v1
-      with:
-        node-version: 12
-    - name: Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        npx semantic-release@17
-        npx uninstall @semantic-release/npm
+  #release:
+  #  needs: build
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - name: Checkout
+  #    uses: actions/checkout@v1
+  #  - name: Setup Node.js
+  #    uses: actions/setup-node@v1
+  #    with:
+  #      node-version: 12
+  #  - name: Release
+  #    env:
+  #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #    run: |
+  #      npx semantic-release@17
+  #      npx uninstall @semantic-release/npm
