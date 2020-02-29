@@ -48,7 +48,7 @@ defmodule Quantonex.MixProject do
 
   defp description() do
     """
-    A technical analysis library for algorithmic trading written in Elixir.
+    A technical analysis library for algorithmic trading.
     """
   end
 
