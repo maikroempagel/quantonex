@@ -66,7 +66,25 @@ defmodule Quantonex.IndicatorsTest do
     assert Quantonex.Indicators.sma([], 2) == {:error, @dataset_error}
   end
 
-  test "vwap/3: initial data point" do
+  test "vwap/3: data point with cumulative volume price implicit" do
+    data_point = %Quantonex.DataPoint{
+      complete: false,
+      high: Decimal.new(8),
+      low: Decimal.new(4),
+      close: Decimal.new(6),
+      volume: 10
+    }
+
+    expected_vwap = %{
+      cumulative_volume: 10,
+      cumulative_volume_price: Decimal.new(60),
+      value: Decimal.new(6)
+    }
+
+    assert Quantonex.Indicators.vwap(data_point, 0) == {:ok, expected_vwap}
+  end
+
+  test "vwap/3: data point with both cumulative values implicit" do
     data_point = %Quantonex.DataPoint{
       complete: false,
       high: Decimal.new(8),
