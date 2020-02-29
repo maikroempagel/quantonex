@@ -40,18 +40,15 @@ defmodule Quantonex.Indicators do
       iex> Quantonex.Indicators.sma([1, 2, 3], 2)
       {:ok, Decimal.from_float(2.5)}
 
-      iex> Quantonex.Indicators.sma([1, 2, 3], 1)
-      {:error, "Period must be at least 2."}
-
       iex> Quantonex.Indicators.sma([1, 2, 3], 4)
       {:error, "Period can't be greater than the length of the dataset."}
   """
   @spec sma(dataset :: nonempty_list(number()), period :: pos_integer()) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
-  def sma(dataset, _period) when length(dataset) < 2,
-    do: {:error, "There must be at least 2 elements in the dataset."}
+  def sma(dataset, _period) when length(dataset) < 1,
+    do: {:error, "There must be at least 1 element in the dataset."}
 
-  def sma(_dataset, period) when period < 2, do: {:error, "Period must be at least 2."}
+  def sma(_dataset, period) when period < 1, do: {:error, "Period must be at least 1."}
 
   def sma(dataset, period) when period > length(dataset),
     do: {:error, "Period can't be greater than the length of the dataset."}

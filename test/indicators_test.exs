@@ -3,14 +3,14 @@ defmodule Quantonex.IndicatorsTest do
 
   doctest Quantonex.Indicators
 
-  @dataset_error "There must be at least 2 elements in the dataset."
+  @dataset_error "There must be at least 1 element in the dataset."
 
   test "sma/1: invalid empty dataset and implicit period" do
     assert Quantonex.Indicators.sma([]) == {:error, @dataset_error}
   end
 
-  test "sma/1: invalid non-empty dataset and implicit period" do
-    assert Quantonex.Indicators.sma([1]) == {:error, @dataset_error}
+  test "sma/1: valid non-empty dataset and implicit period" do
+    assert Quantonex.Indicators.sma([1]) == {:ok, Decimal.new(1)}
   end
 
   test "sma/1: valid non-empty float dataset and implicit period" do
