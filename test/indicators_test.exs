@@ -5,6 +5,40 @@ defmodule Quantonex.IndicatorsTest do
 
   @dataset_error "There must be at least 1 element in the dataset."
 
+  test "ema/1: period 0 returns error" do
+    price = Decimal.from_float(22.81)
+
+    assert Quantonex.Indicators.ema(price, 0) == {:error, "Period must be at least 1."}
+  end
+
+  test "ema/1: period less than 0 returns error" do
+    price = Decimal.from_float(22.81)
+
+    assert Quantonex.Indicators.ema(price, -3) == {:error, "Period must be at least 1."}
+  end
+
+  test "ema/1: calulate first ema using sma" do
+    price = Decimal.from_float(22.81)
+    period = 9
+    expected_ema = Decimal.from_float(22.81)
+
+    {:ok, actual_ema} = Quantonex.Indicators.ema(price, period)
+
+    assert Decimal.equal?(actual_ema, expected_ema) == true
+  end
+
+  test "ema/2: calulate next ema using previous ema" do
+    price = Decimal.from_float(22.91)
+    period = 9
+    previous_ema = Decimal.from_float(22.81)
+    expected_ema = Decimal.from_float(22.83)
+
+    {:ok, actual_ema} = Quantonex.Indicators.ema(price, period, previous_ema)
+
+    assert Decimal.equal?(actual_ema, expected_ema) == true,
+           "expected #{expected_ema}, but was #{actual_ema}!"
+  end
+
   test "sma/1: invalid empty dataset and implicit period" do
     assert Quantonex.Indicators.sma([]) == {:error, @dataset_error}
   end

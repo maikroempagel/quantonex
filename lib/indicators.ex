@@ -19,6 +19,61 @@ defmodule Quantonex.Indicators do
         }
 
   @doc """
+  Calculates an exponential moving average for a given price and period.
+
+  A simple moving average is calculated based on the price and then used as seed for the calculation of the exponential moving average.
+
+  ## Examples
+
+  ```
+  {:ok, ema_value} = Decimal.from_float(22.81) |> Quantonex.Indicators.ema(9)
+  {:ok, #Decimal<22.810>}
+  ```
+  """
+
+  @spec ema(price :: Decimal.t(), period :: pos_integer()) ::
+          {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
+  def ema(price, period) when is_integer(period) and period > 0 do
+    case sma([price]) do
+      {:ok, previous_ema} -> ema(price, period, previous_ema)
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def ema(_price, period) when is_integer(period) and period <= 0,
+    do: {:error, "Period must be at least 1."}
+
+  @doc """
+  Calculates an exponential moving average for a given price, period and previous exponential moving average.
+
+  ## Examples
+
+  ```
+  previous_ema = Decimal.from_float(22.91)
+  {:ok, current_ema} = Decimal.from_float(22.81) |> Quantonex.Indicators.ema(9, previous_ema)
+  {:ok, #Decimal<22.890>}
+  ```
+  """
+  @spec ema(price :: Decimal.t(), period :: pos_integer(), previous_ema :: Decimal.t()) ::
+          {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
+  def ema(price, period, previous_ema) do
+    try do
+      multiplier = weighted_multiplier(period)
+      result = previous_ema |> Decimal.mult(Decimal.sub(1, multiplier))
+
+      value =
+        price
+        |> Decimal.mult(multiplier)
+        |> Decimal.add(result)
+
+      {:ok, value}
+    rescue
+      _ in Decimal.Error ->
+        {:error, "An error occured while calculating the EMA value."}
+    end
+  end
+
+  @doc """
   Calculates a simple moving average for a period that is equal to the length of the dataset.
 
   ## Examples
@@ -152,4 +207,11 @@ defmodule Quantonex.Indicators do
   defp create_decimal(value) when is_float(value), do: Decimal.from_float(value)
 
   defp create_decimal(value), do: Decimal.new(value)
+
+  defp weighted_multiplier(period) do
+    period_increment = Decimal.new(period + 1)
+
+    Decimal.new(2)
+    |> Decimal.div(period_increment)
+  end
 end
