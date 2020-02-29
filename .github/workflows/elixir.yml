@@ -29,3 +29,11 @@ jobs:
       with:
         name: code-coverage-report
         path: cover/excoveralls.html
+    - name: Conventional Changelog Action
+      uses: TriPSs/conventional-changelog-action@v1.2.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        git-message: 'chore(release): {version}'
+        preset: 'angular'
+        output-file: 'CHANGELOG.md'
+        changelog-release-count: 0
