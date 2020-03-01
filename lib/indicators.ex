@@ -9,6 +9,8 @@ defmodule Quantonex.Indicators do
   @period_min_value_error "Period must be at least 1."
   @period_max_value_error "Period can't be greater than the length of the dataset."
 
+  @ema_cal_error "An error occured while calculating the EMA value."
+
   @typedoc """
   Represents a volume weighted average price.
 
@@ -65,40 +67,51 @@ defmodule Quantonex.Indicators do
   """
   @spec ema(dataset :: nonempty_list(number()), period :: pos_integer()) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
-  def ema(dataset, period) when is_list(dataset) and period <= 0,
+
+  def ema(dataset, _period) when is_list(dataset) and length(dataset) < 1,
+    do: {:error, @dataset_min_size_error}
+
+  def ema(dataset, period) when is_list(dataset) and period < 1,
     do: {:error, @period_min_value_error}
 
   def ema(dataset, period) when is_list(dataset) and period > length(dataset),
     do: {:error, @period_max_value_error}
 
   def ema(dataset, period) when is_list(dataset) do
-    # use only the last number of elements
-    start_index = length(dataset) - period
-    end_index = length(dataset) - 1
-    range = start_index..end_index
+    try do
+      # use only the last number of elements
+      start_index = length(dataset) - period
+      end_index = length(dataset) - 1
+      range = start_index..end_index
 
-    # the first price is used as previous ema
-    # the subsequent prices are used for the ema caluclation
-    [previous_ema | rest] = dataset |> Enum.slice(range)
+      # the first price is used as previous ema
+      # the subsequent prices are used for the ema caluclation
+      [previous_ema | rest] = dataset |> Enum.slice(range)
 
-    result =
-      rest
-      # create decimals from either integers or floats
-      |> Enum.map(&create_decimal/1)
-      |> Enum.reduce_while(previous_ema, fn current_price, acc ->
-        # calculate the current ema and handle the different return types
-        case ema(current_price, period, acc) do
-          {:ok, value} -> {:cont, value}
-          {:error, reason} -> {:halt, {:error, reason}}
-        end
-      end)
+      # make sure the value can be converted to a decimal
+      previous_ema = previous_ema |> create_decimal()
 
-    case result do
-      {:error, reason} ->
-        {:error, reason}
+      result =
+        rest
+        # create decimals from either integers or floats
+        |> Enum.map(&create_decimal/1)
+        |> Enum.reduce_while(previous_ema, fn current_price, acc ->
+          # calculate the current ema and handle the different return types
+          case ema(current_price, period, acc) do
+            {:ok, value} -> {:cont, value}
+            {:error, reason} -> {:halt, {:error, reason}}
+          end
+        end)
 
-      value ->
-        {:ok, value}
+      case result do
+        {:error, reason} ->
+          {:error, reason}
+
+        value ->
+          {:ok, value}
+      end
+    rescue
+      _ in Decimal.Error -> {:error, @ema_cal_error}
     end
   end
 
@@ -116,7 +129,7 @@ defmodule Quantonex.Indicators do
       {:ok, value}
     rescue
       _ in Decimal.Error ->
-        {:error, "An error occured while calculating the EMA value."}
+        {:error, @ema_cal_error}
     end
   end
 
