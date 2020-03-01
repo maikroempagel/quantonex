@@ -7,7 +7,7 @@ defmodule Quantonex.IndicatorsTest do
   @period_min_value_error "Period must be at least 1."
   @period_max_value_error "Period can't be greater than the length of the dataset."
 
-  @ema_cal_error "An error occured while calculating the EMA value."
+  @ema_calc_error "An error occured while calculating the EMA value."
   @sma_calc_error "An error occured while calculating the SMA value."
 
   describe "ema/1" do
@@ -20,13 +20,13 @@ defmodule Quantonex.IndicatorsTest do
     test "single element non-numeric dataset" do
       dataset = ["a"]
 
-      assert Quantonex.Indicators.ema(dataset) == {:error, @ema_cal_error}
+      assert Quantonex.Indicators.ema(dataset) == {:error, @ema_calc_error}
     end
 
     test "non-numeric dataset" do
       dataset = ["a", "b"]
 
-      assert Quantonex.Indicators.ema(dataset) == {:error, @ema_cal_error}
+      assert Quantonex.Indicators.ema(dataset) == {:error, @ema_calc_error}
     end
 
     test "float dataset" do
@@ -85,13 +85,13 @@ defmodule Quantonex.IndicatorsTest do
     test "single element non-numeric dataset" do
       dataset = ["a"]
 
-      assert Quantonex.Indicators.ema(dataset, 1) == {:error, @ema_cal_error}
+      assert Quantonex.Indicators.ema(dataset, 1) == {:error, @ema_calc_error}
     end
 
     test "non-numeric dataset" do
       dataset = ["a", "b"]
 
-      assert Quantonex.Indicators.ema(dataset, 2) == {:error, @ema_cal_error}
+      assert Quantonex.Indicators.ema(dataset, 2) == {:error, @ema_calc_error}
     end
 
     test "float dataset" do

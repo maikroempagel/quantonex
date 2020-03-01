@@ -9,7 +9,7 @@ defmodule Quantonex.Indicators do
   @period_min_value_error "Period must be at least 1."
   @period_max_value_error "Period can't be greater than the length of the dataset."
 
-  @ema_cal_error "An error occured while calculating the EMA value."
+  @ema_calc_error "An error occured while calculating the EMA value."
 
   @typedoc """
   Represents a volume weighted average price.
@@ -111,7 +111,7 @@ defmodule Quantonex.Indicators do
           {:ok, value}
       end
     rescue
-      _ in Decimal.Error -> {:error, @ema_cal_error}
+      _ in Decimal.Error -> {:error, @ema_calc_error}
     end
   end
 
@@ -129,7 +129,7 @@ defmodule Quantonex.Indicators do
       {:ok, value}
     rescue
       _ in Decimal.Error ->
-        {:error, @ema_cal_error}
+        {:error, @ema_calc_error}
     end
   end
 
@@ -274,7 +274,7 @@ defmodule Quantonex.Indicators do
       {:ok, value}
     rescue
       _ in Decimal.Error ->
-        {:error, "One of the elements in the dataset is non-numeric."}
+        {:error, "An error occured while calculating the SMA value."}
     end
   end
 
