@@ -22,6 +22,15 @@ defmodule Quantonex.Indicators do
           value: Decimal.t()
         }
 
+  @typedoc """
+  Identifies a smoothing method.
+
+    * `ema` - exponential moving average
+    * `sma` - simple moving average
+    * `wilder` - Wilder's smoothing method
+  """
+  @type smoothing_method :: :ema | :sma | :wilder
+
   @doc """
   Calculates an exponential moving average for a period that is equal to the length of the dataset.
 
@@ -108,6 +117,97 @@ defmodule Quantonex.Indicators do
     rescue
       _ in Decimal.Error ->
         {:error, "An error occured while calculating the EMA value."}
+    end
+  end
+
+  @doc """
+  Calculates the relative strength index for a period that is equal to the length of the dataset.
+  """
+  @spec rsi(
+          dataset :: nonempty_list(Decimal.t()),
+          smoothing_method :: smoothing_method()
+        ) ::
+          {:error, reason :: String.t()} | {:ok, rsi :: Decimal.t()}
+
+  def rsi(dataset, smoothing_method), do: rsi(dataset, smoothing_method, length(dataset))
+
+  @doc """
+  Calculates the relative strength index for a dataset and period.
+  """
+  @spec rsi(
+          dataset :: nonempty_list(Decimal.t()),
+          smoothing_method :: smoothing_method(),
+          period :: non_neg_integer()
+        ) ::
+          {:error, reason :: String.t()} | {:ok, rsi :: Decimal.t()}
+
+  def rsi(dataset, :ema, period) do
+    try do
+      {_price, up_moves, down_moves} = calculate_up_and_down_movements(dataset)
+
+      # calculate average movements using ema
+      up_moves |> Enum.each(&ema/3)
+      {:ok, up_sma} = sma(up_moves, period)
+      {:ok, down_sma} = sma(down_moves, period)
+
+      relative_strength = Decimal.div(up_sma, down_sma)
+
+      # RSI: 100 – 100 / ( 1 + relative_strength)
+      one = Decimal.add(Decimal.new(1), relative_strength)
+      two = Decimal.div(Decimal.new(100), one)
+
+      relative_strength_index = Decimal.sub(Decimal.new(100), two)
+
+      {:ok, relative_strength_index}
+    rescue
+      _ in Decimal.Error ->
+        {:error, "An error occured while calculating the RSI value."}
+    end
+  end
+
+  def rsi(dataset, :sma, period) do
+    try do
+      {_price, up_moves, down_moves} = calculate_up_and_down_movements(dataset)
+
+      # calculate average movements using sma
+      {:ok, up_sma} = sma(up_moves, period)
+      {:ok, down_sma} = sma(down_moves, period)
+
+      relative_strength = Decimal.div(up_sma, down_sma)
+
+      # RSI: 100 – 100 / ( 1 + relative_strength)
+      one = Decimal.add(Decimal.new(1), relative_strength)
+      two = Decimal.div(Decimal.new(100), one)
+
+      relative_strength_index = Decimal.sub(Decimal.new(100), two)
+
+      {:ok, relative_strength_index}
+    rescue
+      _ in Decimal.Error ->
+        {:error, "An error occured while calculating the RSI value."}
+    end
+  end
+
+  def rsi(dataset, :wilder, period) do
+    try do
+      {_price, up_moves, down_moves} = calculate_up_and_down_movements(dataset)
+
+      # calculate average movements using sma
+      {:ok, up_sma} = sma(up_moves, period)
+      {:ok, down_sma} = sma(down_moves, period)
+
+      relative_strength = Decimal.div(up_sma, down_sma)
+
+      # RSI: 100 – 100 / ( 1 + relative_strength)
+      one = Decimal.add(Decimal.new(1), relative_strength)
+      two = Decimal.div(Decimal.new(100), one)
+
+      relative_strength_index = Decimal.sub(Decimal.new(100), two)
+
+      {:ok, relative_strength_index}
+    rescue
+      _ in Decimal.Error ->
+        {:error, "An error occured while calculating the RSI value."}
     end
   end
 
@@ -241,6 +341,45 @@ defmodule Quantonex.Indicators do
   end
 
   # Helpers
+
+  defp calculate_up_move(current_price, previous_price) do
+    diff = Decimal.sub(current_price, previous_price)
+
+    case Decimal.gt?(diff, 0) do
+      true -> diff
+      false -> 0
+    end
+  end
+
+  defp calculate_down_move(current_price, previous_price) do
+    diff = Decimal.sub(current_price, previous_price)
+
+    case Decimal.lt?(diff, 0) do
+      true -> Decimal.abs(diff)
+      false -> 0
+    end
+  end
+
+  defp calculate_up_and_down_movements(dataset) do
+    dataset
+    |> Enum.reduce({}, fn current_price, acc ->
+      case acc do
+        # first iteration
+        {} ->
+          {current_price, [], []}
+
+        # subsequent iterations
+        {previous_price, up_movements, down_movements} ->
+          up_movements = [calculate_up_move(current_price, previous_price) | up_movements]
+
+          down_movements = [
+            calculate_down_move(current_price, previous_price) | down_movements
+          ]
+
+          {current_price, up_movements, down_movements}
+      end
+    end)
+  end
 
   defp create_decimal(value) when is_float(value), do: Decimal.from_float(value)
 
