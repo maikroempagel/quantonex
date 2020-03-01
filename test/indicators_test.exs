@@ -4,17 +4,18 @@ defmodule Quantonex.IndicatorsTest do
   doctest Quantonex.Indicators
 
   @dataset_error "There must be at least 1 element in the dataset."
+  @period_min_value_error "Period must be at least 1."
 
   test "ema/1: period 0 returns error" do
     price = Decimal.from_float(22.81)
 
-    assert Quantonex.Indicators.ema(price, 0) == {:error, "Period must be at least 1."}
+    assert Quantonex.Indicators.ema(price, 0) == {:error, @period_min_value_error}
   end
 
   test "ema/1: period less than 0 returns error" do
     price = Decimal.from_float(22.81)
 
-    assert Quantonex.Indicators.ema(price, -3) == {:error, "Period must be at least 1."}
+    assert Quantonex.Indicators.ema(price, -3) == {:error, @period_min_value_error}
   end
 
   test "ema/1: calulate first ema using sma" do

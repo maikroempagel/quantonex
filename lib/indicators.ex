@@ -5,6 +5,10 @@ defmodule Quantonex.Indicators do
 
   alias Quantonex.DataPoint
 
+  @dataset_min_size_error "There must be at least 1 element in the dataset."
+  @period_min_value_error "Period must be at least 1."
+  @period_max_value_error "Period can't be greater than the length of the dataset."
+
   @typedoc """
   Represents a volume weighted average price.
 
@@ -41,7 +45,7 @@ defmodule Quantonex.Indicators do
   end
 
   def ema(_price, period) when is_integer(period) and period <= 0,
-    do: {:error, "Period must be at least 1."}
+    do: {:error, @period_min_value_error}
 
   @doc """
   Calculates an exponential moving average for a given price, period and previous exponential moving average.
@@ -101,12 +105,12 @@ defmodule Quantonex.Indicators do
   @spec sma(dataset :: nonempty_list(number()), period :: pos_integer()) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
   def sma([], _period),
-    do: {:error, "There must be at least 1 element in the dataset."}
+    do: {:error, @dataset_min_size_error}
 
-  def sma(_dataset, period) when period < 1, do: {:error, "Period must be at least 1."}
+  def sma(_dataset, period) when period < 1, do: {:error, @period_min_value_error}
 
   def sma(dataset, period) when period > length(dataset),
-    do: {:error, "Period can't be greater than the length of the dataset."}
+    do: {:error, @period_max_value_error}
 
   def sma(dataset, period) do
     try do
