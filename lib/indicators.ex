@@ -100,7 +100,7 @@ defmodule Quantonex.Indicators do
   """
   @spec sma(dataset :: nonempty_list(number()), period :: pos_integer()) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
-  def sma(dataset, _period) when length(dataset) < 1,
+  def sma([], _period),
     do: {:error, "There must be at least 1 element in the dataset."}
 
   def sma(_dataset, period) when period < 1, do: {:error, "Period must be at least 1."}
