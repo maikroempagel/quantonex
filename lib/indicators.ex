@@ -88,7 +88,7 @@ defmodule Quantonex.Indicators do
   @doc """
   Calculates a simple moving average for a given dataset and period.
 
-  The last n elements of the dataset are used for the calculation.
+  The last `n` elements of the dataset are used for the calculation with `n == period`.
 
   ## Examples
 
