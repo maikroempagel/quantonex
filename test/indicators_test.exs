@@ -5,39 +5,85 @@ defmodule Quantonex.IndicatorsTest do
 
   @dataset_error "There must be at least 1 element in the dataset."
   @period_min_value_error "Period must be at least 1."
+  @period_max_value_error "Period can't be greater than the length of the dataset."
 
-  test "ema/1: period 0 returns error" do
-    price = Decimal.from_float(22.81)
+  test "ema/1: implicit period equal to length of dataset" do
+    dataset = [
+      22.81,
+      23.09,
+      22.91,
+      23.23,
+      22.83,
+      23.05,
+      23.02,
+      23.29,
+      23.41
+    ]
 
-    assert Quantonex.Indicators.ema(price, 0) == {:error, @period_min_value_error}
+    expected_ema = Decimal.new("23.1044064512")
+
+    {:ok, actual_ema} = Quantonex.Indicators.ema(dataset)
+
+    assert Decimal.equal?(actual_ema, expected_ema)
   end
 
-  test "ema/1: period less than 0 returns error" do
-    price = Decimal.from_float(22.81)
+  test "ema/2: period 0" do
+    dataset = [Decimal.from_float(22.81)]
 
-    assert Quantonex.Indicators.ema(price, -3) == {:error, @period_min_value_error}
+    assert Quantonex.Indicators.ema(dataset, 0) == {:error, @period_min_value_error}
   end
 
-  test "ema/1: calulate first ema using sma" do
-    price = Decimal.from_float(22.81)
-    period = 9
-    expected_ema = Decimal.from_float(22.81)
+  test "ema/2: period less than 0" do
+    dataset = [Decimal.from_float(22.81)]
 
-    {:ok, actual_ema} = Quantonex.Indicators.ema(price, period)
-
-    assert Decimal.equal?(actual_ema, expected_ema) == true
+    assert Quantonex.Indicators.ema(dataset, -3) == {:error, @period_min_value_error}
   end
 
-  test "ema/2: calulate next ema using previous ema" do
-    price = Decimal.from_float(22.91)
-    period = 9
-    previous_ema = Decimal.from_float(22.81)
-    expected_ema = Decimal.from_float(22.83)
+  test "ema/2: period greater than length of dataset" do
+    dataset = [Decimal.from_float(22.81)]
 
-    {:ok, actual_ema} = Quantonex.Indicators.ema(price, period, previous_ema)
+    assert Quantonex.Indicators.ema(dataset, 2) ==
+             {:error, @period_max_value_error}
+  end
 
-    assert Decimal.equal?(actual_ema, expected_ema) == true,
-           "expected #{expected_ema}, but was #{actual_ema}!"
+  test "ema/2: explicit period equal to length of dataset" do
+    dataset = [
+      22.81,
+      23.09,
+      22.91,
+      23.23,
+      22.83,
+      23.05,
+      23.02,
+      23.29,
+      23.41
+    ]
+
+    expected_ema = Decimal.new("23.1044064512")
+
+    {:ok, actual_ema} = Quantonex.Indicators.ema(dataset, 9)
+
+    assert Decimal.equal?(actual_ema, expected_ema)
+  end
+
+  test "ema/2: period less than the length of dataset" do
+    dataset = [
+      22.81,
+      23.09,
+      22.91,
+      23.23,
+      22.83,
+      23.05,
+      23.02,
+      23.29,
+      23.41
+    ]
+
+    expected_ema = Decimal.new("23.17543209876543209876543209")
+
+    {:ok, actual_ema} = Quantonex.Indicators.ema(dataset, 5)
+
+    assert Decimal.equal?(actual_ema, expected_ema)
   end
 
   test "sma/1: invalid empty dataset and implicit period" do

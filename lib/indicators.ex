@@ -23,45 +23,79 @@ defmodule Quantonex.Indicators do
         }
 
   @doc """
-  Calculates an exponential moving average for a given price and period.
+  Calculates an exponential moving average for a period that is equal to the length of the dataset.
 
-  A simple moving average is calculated based on the price and then used as seed for the calculation of the exponential moving average.
+  The first price within the period is used as seed for the calculation of the exponential moving average.
 
   ## Examples
 
   ```
-  {:ok, ema_value} = Decimal.from_float(22.81) |> Quantonex.Indicators.ema(9)
-  {:ok, #Decimal<22.810>}
+  dataset = 1..100 |> Enum.map(fn x -> x end)
+  Quantonex.Indicators.ema(dataset)
+  {:ok, #Decimal<57.33397616251147565606871631>}
   ```
   """
-
-  @spec ema(price :: Decimal.t(), period :: pos_integer()) ::
+  @spec ema(dataset :: nonempty_list(number())) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
-  def ema(price, period) when is_integer(period) and period > 0 do
-    case sma([price]) do
-      {:ok, previous_ema} -> ema(price, period, previous_ema)
-      {:error, reason} -> {:error, reason}
+
+  def ema(dataset) when is_list(dataset), do: ema(dataset, length(dataset))
+
+  @doc """
+  Calculates an exponential moving average for a given dataset and period.
+
+  The last `n` elements of the dataset are used for the calculation with `n == period`.
+  The first price within the period is used as seed for the calculation of the exponential moving average.
+
+  ## Examples
+
+  ```
+  dataset = 1..100 |> Enum.map(fn x -> x end)
+  Quantonex.Indicators.ema(1..100, 50)
+  {:ok, #Decimal<78.95012934442930569062237731>}
+  ```
+  """
+  @spec ema(dataset :: nonempty_list(number()), period :: pos_integer()) ::
+          {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
+  def ema(dataset, period) when is_list(dataset) and period <= 0,
+    do: {:error, @period_min_value_error}
+
+  def ema(dataset, period) when is_list(dataset) and period > length(dataset),
+    do: {:error, @period_max_value_error}
+
+  def ema(dataset, period) when is_list(dataset) do
+    # use only the last number of elements
+    start_index = length(dataset) - period
+    end_index = length(dataset) - 1
+    range = start_index..end_index
+
+    # the first price is used as previous ema
+    # the subsequent prices are used for the ema caluclation
+    [previous_ema | rest] = dataset |> Enum.slice(range)
+
+    result =
+      rest
+      # create decimals from either integers or floats
+      |> Enum.map(&create_decimal/1)
+      |> Enum.reduce_while(previous_ema, fn current_price, acc ->
+        # calculate the current ema and handle the different return types
+        case ema(current_price, period, acc) do
+          {:ok, value} -> {:cont, value}
+          {:error, reason} -> {:halt, {:error, reason}}
+        end
+      end)
+
+    case result do
+      {:error, reason} ->
+        {:error, reason}
+
+      value ->
+        {:ok, value}
     end
   end
 
-  def ema(_price, period) when is_integer(period) and period <= 0,
-    do: {:error, @period_min_value_error}
-
-  @doc """
-  Calculates an exponential moving average for a given price, period and previous exponential moving average.
-
-  ## Examples
-
-  ```
-  previous_ema = Decimal.from_float(22.91)
-  {:ok, current_ema} = Decimal.from_float(22.81) |> Quantonex.Indicators.ema(9, previous_ema)
-  {:ok, #Decimal<22.890>}
-  ```
-  """
-  @spec ema(price :: Decimal.t(), period :: pos_integer(), previous_ema :: Decimal.t()) ::
-          {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
-  def ema(price, period, previous_ema) do
+  defp ema(price, period, previous_ema) do
     try do
+      previous_ema = create_decimal(previous_ema)
       multiplier = weighted_multiplier(period)
       result = previous_ema |> Decimal.mult(Decimal.sub(1, multiplier))
 
