@@ -234,6 +234,8 @@ defmodule Quantonex.Indicators do
   """
   @spec sma(dataset :: nonempty_list(number())) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
+  def sma([]), do: {:error, @dataset_min_size_error}
+
   def sma(dataset), do: dataset |> sma(length(dataset))
 
   @doc """
