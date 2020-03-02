@@ -4,7 +4,7 @@
 [![Package badge](https://img.shields.io/hexpm/v/quantonex)](https://hex.pm/packages/quantonex)
 # Quantonex
 
-A technical analysis library for algorithmic trading written in Elixir.
+A technical analysis library for algorithmic trading.
 
 ## Installation
 
