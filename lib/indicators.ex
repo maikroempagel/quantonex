@@ -6,10 +6,13 @@ defmodule Quantonex.Indicators do
   alias Quantonex.DataPoint
 
   @dataset_min_size_error "There must be at least 1 element in the dataset."
+  @rsi_dataset_min_size_error "There must be at least 2 elements in the dataset."
   @period_min_value_error "Period must be at least 1."
+  @rsi_period_min_value_error "Period must be at least 2."
   @period_max_value_error "Period can't be greater than the length of the dataset."
 
   @ema_calc_error "An error occured while calculating the EMA value."
+  @rsi_calc_error "An error occured while calculating the RSI value."
 
   @typedoc """
   Represents a volume weighted average price.
@@ -29,9 +32,8 @@ defmodule Quantonex.Indicators do
 
     * `ema` - exponential moving average
     * `sma` - simple moving average
-    * `wilder` - Wilder's smoothing method
   """
-  @type smoothing_method :: :ema | :sma | :wilder
+  @type smoothing_method :: :ema | :sma
 
   @doc """
   Calculates an exponential moving average for a period that is equal to the length of the dataset.
@@ -134,93 +136,49 @@ defmodule Quantonex.Indicators do
   end
 
   @doc """
-  Calculates the relative strength index for a period that is equal to the length of the dataset.
-  """
-  @spec rsi(
-          dataset :: nonempty_list(Decimal.t()),
-          smoothing_method :: smoothing_method()
-        ) ::
-          {:error, reason :: String.t()} | {:ok, rsi :: Decimal.t()}
-
-  def rsi(dataset, smoothing_method), do: rsi(dataset, smoothing_method, length(dataset))
-
-  @doc """
   Calculates the relative strength index for a dataset and period.
   """
   @spec rsi(
-          dataset :: nonempty_list(Decimal.t()),
+          dataset :: nonempty_list(number()),
           smoothing_method :: smoothing_method(),
           period :: non_neg_integer()
         ) ::
           {:error, reason :: String.t()} | {:ok, rsi :: Decimal.t()}
 
-  def rsi(dataset, :ema, period) do
+  # we need at least 2 elements
+  def rsi(dataset, _smoothing_method, _period) when is_list(dataset) and length(dataset) < 2,
+    do: {:error, @rsi_dataset_min_size_error}
+
+  # period can't be less than 1
+  def rsi(dataset, _smoothing_method, period) when is_list(dataset) and period < 1,
+    do: {:error, @rsi_period_min_value_error}
+
+  def rsi(dataset, _smoothing_method, period)
+      when is_list(dataset) and period > length(dataset) - 1,
+      do: {:error, @period_max_value_error}
+
+  def rsi(dataset, :ema, period), do: calculate_rsi(dataset, period, &ema/2)
+  def rsi(dataset, :sma, period), do: calculate_rsi(dataset, period, &sma/2)
+
+  defp calculate_rsi(dataset, period, fun) do
     try do
-      {_price, up_moves, down_moves} = calculate_up_and_down_movements(dataset)
+      {_price, up_moves, down_moves} =
+        dataset
+        |> create_ranged_dataset(period + 1)
+        |> calculate_up_and_down_movements()
 
-      # calculate average movements using ema
-      up_moves |> Enum.each(&ema/3)
-      {:ok, up_sma} = sma(up_moves, period)
-      {:ok, down_sma} = sma(down_moves, period)
+      {:ok, average_up} =
+        up_moves
+        |> fun.(period)
 
-      relative_strength = Decimal.div(up_sma, down_sma)
+      {:ok, average_down} =
+        down_moves
+        |> fun.(period)
 
-      # RSI: 100 – 100 / ( 1 + relative_strength)
-      one = Decimal.add(Decimal.new(1), relative_strength)
-      two = Decimal.div(Decimal.new(100), one)
-
-      relative_strength_index = Decimal.sub(Decimal.new(100), two)
-
-      {:ok, relative_strength_index}
+      {:ok, calculate_relative_strength_index(average_up, average_down)}
     rescue
       _ in Decimal.Error ->
-        {:error, "An error occured while calculating the RSI value."}
-    end
-  end
-
-  def rsi(dataset, :sma, period) do
-    try do
-      {_price, up_moves, down_moves} = calculate_up_and_down_movements(dataset)
-
-      # calculate average movements using sma
-      {:ok, up_sma} = sma(up_moves, period)
-      {:ok, down_sma} = sma(down_moves, period)
-
-      relative_strength = Decimal.div(up_sma, down_sma)
-
-      # RSI: 100 – 100 / ( 1 + relative_strength)
-      one = Decimal.add(Decimal.new(1), relative_strength)
-      two = Decimal.div(Decimal.new(100), one)
-
-      relative_strength_index = Decimal.sub(Decimal.new(100), two)
-
-      {:ok, relative_strength_index}
-    rescue
-      _ in Decimal.Error ->
-        {:error, "An error occured while calculating the RSI value."}
-    end
-  end
-
-  def rsi(dataset, :wilder, period) do
-    try do
-      {_price, up_moves, down_moves} = calculate_up_and_down_movements(dataset)
-
-      # calculate average movements using sma
-      {:ok, up_sma} = sma(up_moves, period)
-      {:ok, down_sma} = sma(down_moves, period)
-
-      relative_strength = Decimal.div(up_sma, down_sma)
-
-      # RSI: 100 – 100 / ( 1 + relative_strength)
-      one = Decimal.add(Decimal.new(1), relative_strength)
-      two = Decimal.div(Decimal.new(100), one)
-
-      relative_strength_index = Decimal.sub(Decimal.new(100), two)
-
-      {:ok, relative_strength_index}
-    rescue
-      _ in Decimal.Error ->
-        {:error, "An error occured while calculating the RSI value."}
+        {:error, @rsi_calc_error}
     end
   end
 
@@ -355,23 +313,40 @@ defmodule Quantonex.Indicators do
     end
   end
 
-  # Helpers
+  ## Helpers
 
-  defp calculate_up_move(current_price, previous_price) do
+  defp calculate_relative_strength_index(average_up, average_down) do
+    max_rsi = Decimal.new(100)
+
+    # no down movements
+    if Decimal.equal?(average_down, Decimal.new(0)) do
+      max_rsi
+    else
+      relative_strength = Decimal.div(average_up, average_down)
+
+      # RSI: 100 – 100 / ( 1 + relative_strength)
+      first_calc = Decimal.new(1) |> Decimal.add(relative_strength)
+      second_calc = Decimal.div(max_rsi, first_calc)
+
+      Decimal.sub(max_rsi, second_calc)
+    end
+  end
+
+  defp calculate_up_move(previous_price, current_price) do
     diff = Decimal.sub(current_price, previous_price)
 
     case Decimal.gt?(diff, 0) do
       true -> diff
-      false -> 0
+      false -> Decimal.new(0)
     end
   end
 
-  defp calculate_down_move(current_price, previous_price) do
+  defp calculate_down_move(previous_price, current_price) do
     diff = Decimal.sub(current_price, previous_price)
 
     case Decimal.lt?(diff, 0) do
       true -> Decimal.abs(diff)
-      false -> 0
+      false -> Decimal.new(0)
     end
   end
 
@@ -385,15 +360,25 @@ defmodule Quantonex.Indicators do
 
         # subsequent iterations
         {previous_price, up_movements, down_movements} ->
-          up_movements = [calculate_up_move(current_price, previous_price) | up_movements]
-
-          down_movements = [
-            calculate_down_move(current_price, previous_price) | down_movements
-          ]
+          up_movements = [calculate_up_move(previous_price, current_price) | up_movements]
+          down_movements = [calculate_down_move(previous_price, current_price) | down_movements]
 
           {current_price, up_movements, down_movements}
       end
     end)
+  end
+
+  defp create_ranged_dataset(dataset, period) do
+    # use only the last n elements
+    start_index = length(dataset) - period
+    end_index = length(dataset) - 1
+    range = start_index..end_index
+
+    # the first price is used as previous ema
+    # the subsequent prices are used for the ema caluclation
+    dataset
+    |> Enum.slice(range)
+    |> Enum.map(&create_decimal/1)
   end
 
   defp create_decimal(value) when is_float(value), do: Decimal.from_float(value)
