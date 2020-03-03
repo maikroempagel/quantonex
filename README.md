@@ -14,7 +14,7 @@ by adding `quantonex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:quantonex, "~> 1.0.0"}
+    {:quantonex, "~> 0.1.0"}
   ]
 end
 ```
