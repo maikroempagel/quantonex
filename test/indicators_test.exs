@@ -404,9 +404,22 @@ defmodule Quantonex.IndicatorsTest do
     end
 
     test "integer dataset" do
-      dataset = 1..10 |> Enum.map(fn x -> x end)
+      dataset =
+        [
+          101,
+          100,
+          103,
+          99,
+          96,
+          99,
+          95,
+          91,
+          93,
+          89
+        ]
+        |> Enum.map(fn x -> x end)
 
-      expected = Decimal.from_float(5.5)
+      expected = Decimal.from_float(96.6)
 
       {:ok, actual} = Quantonex.Indicators.sma(dataset)
 
@@ -415,9 +428,22 @@ defmodule Quantonex.IndicatorsTest do
     end
 
     test "string dataset" do
-      dataset = 1..10 |> Enum.map(fn x -> Integer.to_string(x) end)
+      dataset =
+        [
+          101,
+          100,
+          103,
+          99,
+          96,
+          99,
+          95,
+          91,
+          93,
+          89
+        ]
+        |> Enum.map(fn x -> Integer.to_string(x) end)
 
-      expected = Decimal.from_float(5.5)
+      expected = Decimal.from_float(96.6)
 
       {:ok, actual} = Quantonex.Indicators.sma(dataset)
 
@@ -523,22 +549,50 @@ defmodule Quantonex.IndicatorsTest do
     end
 
     test "integer dataset with period less than length of dataset" do
-      dataset = 1..10 |> Enum.map(fn x -> x end)
+      dataset =
+        [
+          101,
+          100,
+          103,
+          99,
+          96,
+          99,
+          95,
+          91,
+          93,
+          89,
+          90
+        ]
+        |> Enum.map(fn x -> x end)
 
-      expected = Decimal.new(8)
+      expected = Decimal.from_float(95.5)
 
-      {:ok, actual} = Quantonex.Indicators.sma(dataset, 5)
+      {:ok, actual} = Quantonex.Indicators.sma(dataset, 10)
 
       assert Decimal.equal?(actual, expected),
              "Expected #{expected}, but was #{actual}!"
     end
 
     test "string dataset with period less than length of dataset" do
-      dataset = 1..10 |> Enum.map(fn x -> Integer.to_string(x) end)
+      dataset =
+        [
+          101,
+          100,
+          103,
+          99,
+          96,
+          99,
+          95,
+          91,
+          93,
+          89,
+          90
+        ]
+        |> Enum.map(fn x -> Integer.to_string(x) end)
 
-      expected = Decimal.new(8)
+      expected = Decimal.from_float(95.5)
 
-      {:ok, actual} = Quantonex.Indicators.sma(dataset, 5)
+      {:ok, actual} = Quantonex.Indicators.sma(dataset, 10)
 
       assert Decimal.equal?(actual, expected),
              "Expected #{expected}, but was #{actual}!"
