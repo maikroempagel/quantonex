@@ -3,7 +3,7 @@ defmodule Quantonex.MixProject do
 
   @github_url "https://github.com/maikroempagel/quantonex"
 
-  @version "1.0.0"
+  @version "0.1.0"
 
   def project do
     [
