@@ -95,7 +95,7 @@ defmodule Quantonex.Indicators do
 
       result =
         rest
-        # create decimals from either integers or floats
+        # create decimals from either strings, integers or floats
         |> Enum.map(&create_decimal/1)
         |> Enum.reduce_while(previous_ema, fn current_price, acc ->
           # calculate the current ema and handle the different return types
@@ -225,6 +225,7 @@ defmodule Quantonex.Indicators do
         dataset
         |> Enum.reverse()
         |> Enum.take(period)
+        # create decimals from either strings, integers or floats
         |> Enum.map(&create_decimal/1)
         |> Enum.reduce(fn x, acc -> Decimal.add(x, acc) end)
         |> Decimal.div(period)
@@ -378,6 +379,7 @@ defmodule Quantonex.Indicators do
     # the subsequent prices are used for the ema caluclation
     dataset
     |> Enum.slice(range)
+    # create decimals from either strings, integers or floats
     |> Enum.map(&create_decimal/1)
   end
 
