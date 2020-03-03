@@ -52,14 +52,7 @@ defmodule Quantonex.MixProject do
     """
   end
 
-  defp docs do
-    [
-      main: "readme"
-      # extras: [
-      #  "README.md"
-      # ]
-    ]
-  end
+  defp docs, do: []
 
   defp package() do
     [
