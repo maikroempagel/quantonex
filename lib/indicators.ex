@@ -48,7 +48,7 @@ defmodule Quantonex.Indicators do
   {:ok, #Decimal<57.33397616251147565606871631>}
   ```
   """
-  @spec ema(dataset :: nonempty_list(number())) ::
+  @spec ema(dataset :: nonempty_list(String.t() | number())) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
 
   def ema(dataset) when is_list(dataset), do: ema(dataset, length(dataset))
@@ -67,7 +67,7 @@ defmodule Quantonex.Indicators do
   {:ok, #Decimal<78.95012934442930569062237731>}
   ```
   """
-  @spec ema(dataset :: nonempty_list(number()), period :: pos_integer()) ::
+  @spec ema(dataset :: nonempty_list(String.t() | number()), period :: pos_integer()) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
 
   def ema(dataset, _period) when is_list(dataset) and length(dataset) < 1,
@@ -139,7 +139,7 @@ defmodule Quantonex.Indicators do
   Calculates the relative strength index for a dataset and period.
   """
   @spec rsi(
-          dataset :: nonempty_list(number()),
+          dataset :: nonempty_list(String.t() | number()),
           smoothing_method :: smoothing_method(),
           period :: non_neg_integer()
         ) ::
@@ -190,7 +190,7 @@ defmodule Quantonex.Indicators do
       iex> Quantonex.Indicators.sma([1, 2, 3])
       {:ok, Decimal.new(2)}
   """
-  @spec sma(dataset :: nonempty_list(number())) ::
+  @spec sma(dataset :: nonempty_list(String.t() | number())) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
   def sma([]), do: {:error, @dataset_min_size_error}
 
@@ -209,7 +209,7 @@ defmodule Quantonex.Indicators do
       iex> Quantonex.Indicators.sma([1, 2, 3], 4)
       {:error, "Period can't be greater than the length of the dataset."}
   """
-  @spec sma(dataset :: nonempty_list(number()), period :: pos_integer()) ::
+  @spec sma(dataset :: nonempty_list(String.t() | number()), period :: pos_integer()) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
   def sma([], _period),
     do: {:error, @dataset_min_size_error}
