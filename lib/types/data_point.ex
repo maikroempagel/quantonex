@@ -6,15 +6,15 @@ defmodule Quantonex.DataPoint do
   @typedoc """
   Represents a data point of an instrument.
 
-  * `complete` - `true` if the data point is complete, otherwise `false`.
-  * `close` - the close price.
-  * `granularity` - the granularity of the data point e.g. `H4`.
-  * `instrument` - an instrument e.g. `EURUSD`.
-  * `high` - the highest price.
-  * `low` - the lowest price.
-  * `open` - the open price.
-  * `datetime` - the datetime.
-  * `volume` - the volume.
+  * `complete` - `true` if the data point is complete, otherwise `false`
+  * `close` - the close price
+  * `granularity` - the granularity of the data point e.g. `H4`
+  * `instrument` - an instrument e.g. `EURUSD`
+  * `high` - the highest price
+  * `low` - the lowest price
+  * `open` - the open price
+  * `datetime` - the datetime
+  * `volume` - the volume
   """
   @type t :: %__MODULE__{
           complete: boolean(),
@@ -25,18 +25,18 @@ defmodule Quantonex.DataPoint do
           low: Decimal.t(),
           open: Decimal.t(),
           datetime: DateTime.t(),
-          volume: pos_integer()
+          volume: non_neg_integer()
         }
 
   defstruct [
-    :complete,
-    :close,
-    :high,
-    :low,
-    :open,
     :granularity,
     :instrument,
     :datetime,
-    :volume
+    complete: false,
+    close: Decimal.new(0),
+    high: Decimal.new(0),
+    low: Decimal.new(0),
+    open: Decimal.new(0),
+    volume: 0
   ]
 end
