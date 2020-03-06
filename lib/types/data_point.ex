@@ -7,6 +7,10 @@ defmodule Quantonex.DataPoint do
   Represents a data point of an instrument.
 
   * `complete` - `true` if the data point is complete, otherwise `false`
+
+  A data point is considered incomplete if not all data is known or final.
+  This usually occurs if the current interval defined by `granularity` has not yet finished.
+
   * `close` - the close price
   * `granularity` - the granularity of the data point e.g. `H4`
   * `instrument` - an instrument e.g. `EURUSD`
