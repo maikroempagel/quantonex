@@ -91,12 +91,12 @@ defmodule Quantonex.Indicators do
       [previous_ema | rest] = dataset |> Enum.slice(range)
 
       # make sure the value can be converted to a decimal
-      previous_ema = previous_ema |> create_decimal()
+      previous_ema = previous_ema |> to_decimal()
 
       result =
         rest
         # create decimals from either strings, integers or floats
-        |> Enum.map(&create_decimal/1)
+        |> Enum.map(&to_decimal/1)
         |> Enum.reduce_while(previous_ema, fn current_price, acc ->
           # calculate the current ema and handle the different return types
           case ema(current_price, period, acc) do
@@ -119,7 +119,7 @@ defmodule Quantonex.Indicators do
 
   defp ema(price, period, previous_ema) do
     try do
-      previous_ema = create_decimal(previous_ema)
+      previous_ema = to_decimal(previous_ema)
       multiplier = weighted_multiplier(period)
       result = previous_ema |> Decimal.mult(Decimal.sub(1, multiplier))
 
@@ -158,7 +158,8 @@ defmodule Quantonex.Indicators do
       do: {:error, @period_max_value_error}
 
   def rsi(dataset, :ema, period), do: calculate_rsi(dataset, period, &ema/2)
-  def rsi(dataset, :sma, period), do: calculate_rsi(dataset, period, &sma/2)
+
+  # def rsi(dataset, :sma, period), do: calculate_rsi(dataset, period, &sma/2)
 
   defp calculate_rsi(dataset, period, fun) do
     try do
@@ -363,7 +364,7 @@ defmodule Quantonex.Indicators do
     dataset
     |> Enum.slice(range)
     # create decimals from either strings, integers or floats
-    |> Enum.map(&create_decimal/1)
+    |> Enum.map(&to_decimal/1)
   end
 
   # create decimals from either strings, integers or floats
