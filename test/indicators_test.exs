@@ -198,174 +198,174 @@ defmodule Quantonex.IndicatorsTest do
     end
   end
 
-  describe "rsi/3" do
-    test "empty dataset" do
-      dataset = []
-
-      assert Quantonex.Indicators.rsi(dataset, :sma, 3) == {:error, @rsi_dataset_min_size_error}
-    end
-
-    test "single element dataset" do
-      dataset = [1]
-
-      assert Quantonex.Indicators.rsi(dataset, :sma, 3) == {:error, @rsi_dataset_min_size_error}
-    end
-
-    test "period greater than length of dataset" do
-      dataset = [22.81, 23, 24]
-
-      assert Quantonex.Indicators.rsi(dataset, :sma, 4) ==
-               {:error, @period_max_value_error}
-    end
-
-    test "non-numeric dataset" do
-      dataset = ["a", "b"]
-
-      assert Quantonex.Indicators.rsi(dataset, :sma, 1) == {:error, @rsi_calc_error}
-    end
-
-    test "float dataset using sma" do
-      dataset = [
-        44.3389,
-        44.0902,
-        44.1497,
-        43.6124,
-        44.3278,
-        44.8264,
-        45.0955,
-        45.4245,
-        45.8433,
-        46.0826,
-        45.8931,
-        46.0328,
-        45.614,
-        46.282,
-        46.282
-      ]
-
-      expected = Decimal.new("70.53278948369507787898641080")
-
-      {:ok, actual} = Quantonex.Indicators.rsi(dataset, :sma, 14)
-
-      assert Decimal.equal?(actual, expected),
-             "Expected #{expected}, but was #{actual}!"
-    end
-
-    test "float dataset using ema" do
-      dataset = [
-        44.3389,
-        44.0902,
-        44.1497,
-        43.6124,
-        44.3278,
-        44.8264,
-        45.0955,
-        45.4245,
-        45.8433,
-        46.0826,
-        45.8931,
-        46.0328,
-        45.614,
-        46.282,
-        46.282
-      ]
-
-      expected = Decimal.new("64.73923473120352787432305673")
-
-      {:ok, actual} = Quantonex.Indicators.rsi(dataset, :ema, 14)
-
-      assert Decimal.equal?(actual, expected),
-             "Expected #{expected}, but was #{actual}!"
-    end
-
-    test "increasing integer dataset using sma" do
-      dataset = 1..15 |> Enum.map(fn x -> x end)
-
-      expected = Decimal.new(100)
-
-      {:ok, actual} = Quantonex.Indicators.rsi(dataset, :sma, 14)
-
-      assert Decimal.equal?(actual, expected),
-             "Expected #{expected}, but was #{actual}!"
-    end
-
-    test "increasing integer dataset using ema" do
-      dataset = 1..15 |> Enum.map(fn x -> x end)
-
-      expected = Decimal.new(100)
-
-      {:ok, actual} = Quantonex.Indicators.rsi(dataset, :ema, 14)
-
-      assert Decimal.equal?(actual, expected),
-             "Expected #{expected}, but was #{actual}!"
-    end
-
-    test "decreasing integer dataset using sma" do
-      dataset = 15..1 |> Enum.map(fn x -> x end)
-
-      expected = Decimal.new(0)
-
-      {:ok, actual} = Quantonex.Indicators.rsi(dataset, :sma, 14)
-
-      assert Decimal.equal?(actual, expected),
-             "Expected #{expected}, but was #{actual}!"
-    end
-
-    test "decreasing integer dataset using ema" do
-      dataset = 15..1 |> Enum.map(fn x -> x end)
-
-      expected = Decimal.new(0)
-
-      {:ok, actual} = Quantonex.Indicators.rsi(dataset, :ema, 14)
-
-      assert Decimal.equal?(actual, expected),
-             "Expected #{expected}, but was #{actual}!"
-    end
-
-    test "increasing string dataset using sma" do
-      dataset = 1..15 |> Enum.map(fn x -> Integer.to_string(x) end)
-
-      expected = Decimal.new(100)
-
-      {:ok, actual} = Quantonex.Indicators.rsi(dataset, :sma, 14)
-
-      assert Decimal.equal?(actual, expected),
-             "Expected #{expected}, but was #{actual}!"
-    end
-
-    test "increasing string dataset using ema" do
-      dataset = 1..15 |> Enum.map(fn x -> Integer.to_string(x) end)
-
-      expected = Decimal.new(100)
-
-      {:ok, actual} = Quantonex.Indicators.rsi(dataset, :ema, 14)
-
-      assert Decimal.equal?(actual, expected),
-             "Expected #{expected}, but was #{actual}!"
-    end
-
-    test "decreasing string dataset using sma" do
-      dataset = 15..1 |> Enum.map(fn x -> Integer.to_string(x) end)
-
-      expected = Decimal.new(0)
-
-      {:ok, actual} = Quantonex.Indicators.rsi(dataset, :sma, 14)
-
-      assert Decimal.equal?(actual, expected),
-             "Expected #{expected}, but was #{actual}!"
-    end
-
-    test "decreasing string dataset using ema" do
-      dataset = 15..1 |> Enum.map(fn x -> Integer.to_string(x) end)
-
-      expected = Decimal.new(0)
-
-      {:ok, actual} = Quantonex.Indicators.rsi(dataset, :ema, 14)
-
-      assert Decimal.equal?(actual, expected),
-             "Expected #{expected}, but was #{actual}!"
-    end
-  end
+  # describe "rsi/3" do
+  #  test "empty dataset" do
+  #    dataset = []
+  #
+  #    assert Quantonex.Indicators.rsi(dataset, :sma, 3) == {:error, @rsi_dataset_min_size_error}
+  #  end
+  #
+  #  test "single element dataset" do
+  #    dataset = [1]
+  #
+  #    assert Quantonex.Indicators.rsi(dataset, :sma, 3) == {:error, @rsi_dataset_min_size_error}
+  #  end
+  #
+  #  test "period greater than length of dataset" do
+  #    dataset = [22.81, 23, 24]
+  #
+  #    assert Quantonex.Indicators.rsi(dataset, :sma, 4) ==
+  #             {:error, @period_max_value_error}
+  #  end
+  #
+  #  test "non-numeric dataset" do
+  #    dataset = ["a", "b"]
+  #
+  #    assert Quantonex.Indicators.rsi(dataset, :sma, 1) == {:error, @rsi_calc_error}
+  #  end
+  #
+  #  test "float dataset using sma" do
+  #    dataset = [
+  #      44.3389,
+  #      44.0902,
+  #      44.1497,
+  #      43.6124,
+  #      44.3278,
+  #      44.8264,
+  #      45.0955,
+  #      45.4245,
+  #      45.8433,
+  #      46.0826,
+  #      45.8931,
+  #      46.0328,
+  #      45.614,
+  #      46.282,
+  #      46.282
+  #    ]
+  #
+  #    expected = Decimal.new("70.53278948369507787898641080")
+  #
+  #    {:ok, actual} = Quantonex.Indicators.rsi(dataset, :sma, 14)
+  #
+  #    assert Decimal.equal?(actual, expected),
+  #           "Expected #{expected}, but was #{actual}!"
+  #  end
+  #
+  #  test "float dataset using ema" do
+  #    dataset = [
+  #      44.3389,
+  #      44.0902,
+  #      44.1497,
+  #      43.6124,
+  #      44.3278,
+  #      44.8264,
+  #      45.0955,
+  #      45.4245,
+  #      45.8433,
+  #      46.0826,
+  #      45.8931,
+  #      46.0328,
+  #      45.614,
+  #      46.282,
+  #      46.282
+  #    ]
+  #
+  #    expected = Decimal.new("64.73923473120352787432305673")
+  #
+  #    {:ok, actual} = Quantonex.Indicators.rsi(dataset, :ema, 14)
+  #
+  #    assert Decimal.equal?(actual, expected),
+  #           "Expected #{expected}, but was #{actual}!"
+  #  end
+  #
+  #  test "increasing integer dataset using sma" do
+  #    dataset = 1..15 |> Enum.map(fn x -> x end)
+  #
+  #    expected = Decimal.new(100)
+  #
+  #    {:ok, actual} = Quantonex.Indicators.rsi(dataset, :sma, 14)
+  #
+  #    assert Decimal.equal?(actual, expected),
+  #           "Expected #{expected}, but was #{actual}!"
+  #  end
+  #
+  #  test "increasing integer dataset using ema" do
+  #    dataset = 1..15 |> Enum.map(fn x -> x end)
+  #
+  #    expected = Decimal.new(100)
+  #
+  #    {:ok, actual} = Quantonex.Indicators.rsi(dataset, :ema, 14)
+  #
+  #    assert Decimal.equal?(actual, expected),
+  #           "Expected #{expected}, but was #{actual}!"
+  #  end
+  #
+  #  test "decreasing integer dataset using sma" do
+  #    dataset = 15..1 |> Enum.map(fn x -> x end)
+  #
+  #    expected = Decimal.new(0)
+  #
+  #    {:ok, actual} = Quantonex.Indicators.rsi(dataset, :sma, 14)
+  #
+  #    assert Decimal.equal?(actual, expected),
+  #           "Expected #{expected}, but was #{actual}!"
+  #  end
+  #
+  #  test "decreasing integer dataset using ema" do
+  #    dataset = 15..1 |> Enum.map(fn x -> x end)
+  #
+  #    expected = Decimal.new(0)
+  #
+  #    {:ok, actual} = Quantonex.Indicators.rsi(dataset, :ema, 14)
+  #
+  #    assert Decimal.equal?(actual, expected),
+  #           "Expected #{expected}, but was #{actual}!"
+  #  end
+  #
+  #  test "increasing string dataset using sma" do
+  #    dataset = 1..15 |> Enum.map(fn x -> Integer.to_string(x) end)
+  #
+  #    expected = Decimal.new(100)
+  #
+  #    {:ok, actual} = Quantonex.Indicators.rsi(dataset, :sma, 14)
+  #
+  #    assert Decimal.equal?(actual, expected),
+  #           "Expected #{expected}, but was #{actual}!"
+  #  end
+  #
+  #  test "increasing string dataset using ema" do
+  #    dataset = 1..15 |> Enum.map(fn x -> Integer.to_string(x) end)
+  #
+  #    expected = Decimal.new(100)
+  #
+  #    {:ok, actual} = Quantonex.Indicators.rsi(dataset, :ema, 14)
+  #
+  #    assert Decimal.equal?(actual, expected),
+  #           "Expected #{expected}, but was #{actual}!"
+  #  end
+  #
+  #  test "decreasing string dataset using sma" do
+  #    dataset = 15..1 |> Enum.map(fn x -> Integer.to_string(x) end)
+  #
+  #    expected = Decimal.new(0)
+  #
+  #    {:ok, actual} = Quantonex.Indicators.rsi(dataset, :sma, 14)
+  #
+  #    assert Decimal.equal?(actual, expected),
+  #           "Expected #{expected}, but was #{actual}!"
+  #  end
+  #
+  #  test "decreasing string dataset using ema" do
+  #    dataset = 15..1 |> Enum.map(fn x -> Integer.to_string(x) end)
+  #
+  #    expected = Decimal.new(0)
+  #
+  #    {:ok, actual} = Quantonex.Indicators.rsi(dataset, :ema, 14)
+  #
+  #    assert Decimal.equal?(actual, expected),
+  #           "Expected #{expected}, but was #{actual}!"
+  #  end
+  # end
 
   describe "sma/1" do
     test "empty dataset" do
