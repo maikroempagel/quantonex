@@ -386,11 +386,9 @@ defmodule Quantonex.IndicatorsTest do
     end
 
     test "float dataset" do
-      expected_reference_value = Decimal.from_float(23.09)
-
       dataset = [
         22.81,
-        expected_reference_value,
+        23.09,
         22.91,
         23.23,
         22.83,
@@ -400,24 +398,19 @@ defmodule Quantonex.IndicatorsTest do
         23.41
       ]
 
-      expected_sma = Decimal.new("23.07111111111111111111111111")
+      expected = Decimal.new("23.07111111111111111111111111")
 
-      {:ok, {actual, reference_value}} = Indicators.sma(dataset)
+      {:ok, actual} = Indicators.sma(dataset)
 
-      assert Decimal.equal?(actual, expected_sma),
-             "Expected #{expected_sma}, but was #{actual}!"
-
-      assert Decimal.equal?(reference_value, expected_reference_value),
-             "Expected #{expected_reference_value}, but was #{reference_value}!"
+      assert Decimal.equal?(actual, expected),
+             "Expected #{expected}, but was #{actual}!"
     end
 
     test "integer dataset" do
-      expected_reference_value = Decimal.new(100)
-
       dataset =
         [
           101,
-          expected_reference_value,
+          100,
           103,
           99,
           96,
@@ -429,15 +422,12 @@ defmodule Quantonex.IndicatorsTest do
         ]
         |> Enum.map(fn x -> x end)
 
-      expected_sma = Decimal.from_float(96.6)
+      expected = Decimal.from_float(96.6)
 
-      {:ok, {actual, reference_value}} = Indicators.sma(dataset)
+      {:ok, actual} = Indicators.sma(dataset)
 
-      assert Decimal.equal?(actual, expected_sma),
-             "Expected #{expected_sma}, but was #{actual}!"
-
-      assert Decimal.equal?(reference_value, expected_reference_value),
-             "Expected #{expected_reference_value}, but was #{reference_value}!"
+      assert Decimal.equal?(actual, expected),
+             "Expected #{expected}, but was #{actual}!"
     end
 
     test "string dataset" do
@@ -456,30 +446,12 @@ defmodule Quantonex.IndicatorsTest do
         ]
         |> Enum.map(fn x -> Integer.to_string(x) end)
 
-      expected_sma = Decimal.from_float(96.6)
-      expected_reference_value = Decimal.new(100)
+      expected = Decimal.from_float(96.6)
 
-      {:ok, {actual, reference_value}} = Indicators.sma(dataset)
+      {:ok, actual} = Indicators.sma(dataset)
 
-      assert Decimal.equal?(actual, expected_sma),
-             "Expected #{expected_sma}, but was #{actual}!"
-
-      assert Decimal.equal?(reference_value, expected_reference_value),
-             "Expected #{expected_reference_value}, but was #{reference_value}!"
-    end
-
-    test "single element" do
-      dataset = [1] |> Enum.map(fn x -> x end)
-
-      expected_sma = Decimal.new(1)
-
-      {:ok, {actual, reference_value}} = Indicators.sma(dataset)
-
-      assert Decimal.equal?(actual, expected_sma),
-             "Expected #{expected_sma}, but was #{actual}!"
-
-      assert reference_value == nil,
-             "Expected nil, but was #{reference_value}!"
+      assert Decimal.equal?(actual, expected),
+             "Expected #{expected}, but was #{actual}!"
     end
   end
 

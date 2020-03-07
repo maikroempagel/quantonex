@@ -191,33 +191,22 @@ defmodule Quantonex.Indicators do
   The return value is one of the following:
 
   * `{:error, reason}`
-  * `{:ok, {sma, ref_value}}`
+  * `{:ok, value}`
 
-  `ref_value` is equal to the second value of the input dataset and can be used for
-  successive calculations without needing to sum up the complete dataset (see `Quantonex.Indicators.sma/3`)
+  ## Examples
 
-  Example
-  ```
-  alias Quantonex.Indicators
-
-  period = 3
-
-  {:ok, {first_sma, ref_value}} = Indicators.sma([1, 2, 3])
-
-  {:ok, {second_sma, _}} = Indicators.sma(first_sma, period, ref_value)
+    iex> Quantonex.Indicators.sma([1, 2, 3])
+    {:ok, Decimal.new(2)}
   """
   @spec sma(dataset :: nonempty_list(String.t() | number())) ::
-          {:error, reason :: String.t()} | {:ok, {value :: Decimal.t(), ref_value :: Decimal.t()}}
+          {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
   def sma([]), do: {:error, @dataset_min_size_error}
 
   def sma(dataset) do
     try do
-      inputs = dataset |> Enum.map(&to_decimal/1)
-      value = inputs |> calculate_simple_moving_average()
+      value = dataset |> calculate_simple_moving_average()
 
-      # extract the second price from the dataset
-      # it can be used for successive calculations using sma/3
-      {:ok, {value, second_element(inputs)}}
+      {:ok, value}
     rescue
       e in RuntimeError ->
         {:error, "An error occured while calculating the SMA value: " <> e.message}
