@@ -183,7 +183,13 @@ defmodule Quantonex.Indicators do
   end
 
   @doc """
-  Calculates a simple moving average for a period that is equal to the length of the dataset.
+  Calculates a simple moving average (SMA) for a given dataset.
+
+  [Wikipedia](https://en.wikipedia.org/wiki/Moving_average)
+
+  The sum of the elements is divided by their number.
+
+  The period of the SMA is fixed and equal to the length of the dataset.
 
   ## Examples
 
@@ -194,46 +200,21 @@ defmodule Quantonex.Indicators do
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
   def sma([]), do: {:error, @dataset_min_size_error}
 
-  def sma(dataset), do: dataset |> sma(length(dataset))
-
-  @doc """
-  Calculates a simple moving average for a given dataset and period.
-
-  The last `n` elements of the dataset are used for the calculation with `n == period`.
-
-  ## Examples
-
-      iex> Quantonex.Indicators.sma([1, 2, 3], 2)
-      {:ok, Decimal.from_float(2.5)}
-
-      iex> Quantonex.Indicators.sma([1, 2, 3], 4)
-      {:error, "Period can't be greater than the length of the dataset."}
-  """
-  @spec sma(dataset :: nonempty_list(String.t() | number()), period :: pos_integer()) ::
-          {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
-  def sma([], _period),
-    do: {:error, @dataset_min_size_error}
-
-  def sma(_dataset, period) when period < 1, do: {:error, @period_min_value_error}
-
-  def sma(dataset, period) when period > length(dataset),
-    do: {:error, @period_max_value_error}
-
-  def sma(dataset, period) do
+  def sma(dataset) do
     try do
       value =
         dataset
-        |> Enum.reverse()
-        |> Enum.take(period)
-        # create decimals from either strings, integers or floats
-        |> Enum.map(&create_decimal/1)
+        |> Enum.map(&to_decimal/1)
         |> Enum.reduce(fn x, acc -> Decimal.add(x, acc) end)
-        |> Decimal.div(period)
+        |> calculate_average(length(dataset))
 
       {:ok, value}
     rescue
-      _ in Decimal.Error ->
-        {:error, "An error occured while calculating the SMA value."}
+      e in RuntimeError ->
+        {:error, "An error occured while calculating the SMA value: " <> e.message}
+
+      e in Decimal.Error ->
+        {:error, "An error occured while calculating the SMA value: " <> e.message}
     end
   end
 
@@ -316,6 +297,8 @@ defmodule Quantonex.Indicators do
 
   ## Helpers
 
+  defp calculate_average(sum, divisor), do: Decimal.div(sum, Decimal.new(divisor))
+
   defp calculate_relative_strength_index(average_up, average_down) do
     max_rsi = Decimal.new(100)
 
@@ -383,9 +366,9 @@ defmodule Quantonex.Indicators do
     |> Enum.map(&create_decimal/1)
   end
 
-  defp create_decimal(value) when is_float(value), do: Decimal.from_float(value)
-
-  defp create_decimal(value), do: Decimal.new(value)
+  # create decimals from either strings, integers or floats
+  defp to_decimal(value) when is_float(value), do: Decimal.from_float(value)
+  defp to_decimal(value), do: Decimal.new(value)
 
   defp weighted_multiplier(period) do
     period_increment = Decimal.new(period + 1)
