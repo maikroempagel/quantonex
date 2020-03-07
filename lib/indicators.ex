@@ -186,30 +186,38 @@ defmodule Quantonex.Indicators do
   @doc """
   Calculates a simple moving average (SMA) for a given dataset.
 
-  [Wikipedia](https://en.wikipedia.org/wiki/Moving_average)
-
-  The sum of the elements is divided by their number.
-
   The period of the SMA is fixed and equal to the length of the dataset.
 
-  ## Examples
+  The return value is one of the following:
 
-      iex> Quantonex.Indicators.sma([1, 2, 3])
-      {:ok, Decimal.new(2)}
+  * `{:error, reason}`
+  * `{:ok, {sma, ref_value}}`
+
+  `ref_value` is equal to the second value of the input dataset and can be used for
+  successive calculations without needing to sum up the complete dataset (see `Quantonex.Indicators.sma/3`)
+
+  Example
+  ```
+  alias Quantonex.Indicators
+
+  period = 3
+
+  {:ok, {first_sma, ref_value}} = Indicators.sma([1, 2, 3])
+
+  {:ok, {second_sma, _}} = Indicators.sma(first_sma, period, ref_value)
   """
   @spec sma(dataset :: nonempty_list(String.t() | number())) ::
-          {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
+          {:error, reason :: String.t()} | {:ok, {value :: Decimal.t(), ref_value :: Decimal.t()}}
   def sma([]), do: {:error, @dataset_min_size_error}
 
   def sma(dataset) do
     try do
-      value =
-        dataset
-        |> Enum.map(&to_decimal/1)
-        |> Enum.reduce(fn x, acc -> Decimal.add(x, acc) end)
-        |> calculate_average(length(dataset))
+      inputs = dataset |> Enum.map(&to_decimal/1)
+      value = inputs |> calculate_simple_moving_average()
 
-      {:ok, value}
+      # extract the second price from the dataset
+      # it can be used for successive calculations using sma/3
+      {:ok, {value, second_element(inputs)}}
     rescue
       e in RuntimeError ->
         {:error, "An error occured while calculating the SMA value: " <> e.message}
@@ -298,6 +306,13 @@ defmodule Quantonex.Indicators do
 
   ## Helpers
 
+  defp calculate_simple_moving_average(dataset) do
+    dataset
+    |> Enum.map(&to_decimal/1)
+    |> Enum.reduce(fn x, acc -> Decimal.add(x, acc) end)
+    |> calculate_average(length(dataset))
+  end
+
   defp calculate_average(sum, divisor), do: Decimal.div(sum, Decimal.new(divisor))
 
   defp calculate_relative_strength_index(average_up, average_down) do
@@ -367,8 +382,8 @@ defmodule Quantonex.Indicators do
     |> Enum.map(&to_decimal/1)
   end
 
-  # create decimals from either strings, integers or floats
   defp to_decimal(value) when is_float(value), do: Decimal.from_float(value)
+  # create decimals from either strings, integers or decimals
   defp to_decimal(value), do: Decimal.new(value)
 
   defp weighted_multiplier(period) do
@@ -377,4 +392,7 @@ defmodule Quantonex.Indicators do
     Decimal.new(2)
     |> Decimal.div(period_increment)
   end
+
+  defp second_element([_head | []]), do: nil
+  defp second_element(dataset), do: dataset[1]
 end
