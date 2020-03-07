@@ -198,11 +198,11 @@ defmodule Quantonex.Indicators do
     iex> Quantonex.Indicators.sma([1, 2, 3])
     {:ok, Decimal.new(2)}
   """
-  @spec sma(dataset :: nonempty_list(String.t() | number())) ::
+  @spec sma(dataset :: nonempty_list(price :: String.t() | number())) ::
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
   def sma([]), do: {:error, @dataset_min_size_error}
 
-  def sma(dataset) do
+  def sma(dataset) when is_list(dataset) do
     try do
       value = dataset |> calculate_simple_moving_average()
 
