@@ -81,11 +81,13 @@ defmodule Quantonex.Indicators do
       {:ok, seed} =
         dataset
         |> Enum.take(period)
+        |> Enum.map(&to_decimal/1)
         |> sma()
 
       values =
         dataset
         |> Enum.slice(period..(length(dataset) - 1))
+        |> Enum.map(&to_decimal/1)
         |> Enum.reduce_while([seed | initial_emas], fn current_price, acc ->
           [previous_ema | _tail] = acc
 
