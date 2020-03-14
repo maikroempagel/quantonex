@@ -74,18 +74,18 @@ defmodule Quantonex.Indicators do
 
   def ema(dataset, period) when is_list(dataset) do
     try do
+      # every ema value with an index < period is set to 0
+      initial_emas = 1..(period - 1) |> Enum.map(fn _ -> @zero end)
+
+      # the first EMA is based on a SMA
       {:ok, seed} =
         dataset
         |> Enum.take(period)
-        |> Enum.map(&to_decimal/1)
         |> sma()
-
-      initial_emas = 1..(period - 1) |> Enum.map(fn _ -> @zero end)
 
       values =
         dataset
         |> Enum.slice(period..(length(dataset) - 1))
-        |> Enum.map(&to_decimal/1)
         |> Enum.reduce_while([seed | initial_emas], fn current_price, acc ->
           [previous_ema | _tail] = acc
 
@@ -94,6 +94,7 @@ defmodule Quantonex.Indicators do
             {:error, reason} -> {:halt, {:error, reason}}
           end
         end)
+        # reverse to match the order of the input dataset
         |> Enum.reverse()
 
       {:ok, values}
@@ -128,17 +129,15 @@ defmodule Quantonex.Indicators do
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
   def ema(price, period, previous_ema) do
     try do
+      # 2 / (period + 1)
       multiplier = weighted_multiplier(period)
 
-      result =
+      # (price - previous_ema) * multiplier + previous_ema
+      value =
         previous_ema
         |> to_decimal()
         |> Decimal.mult(Decimal.sub(Decimal.new(1), multiplier))
-
-      value =
-        price
-        |> Decimal.mult(multiplier)
-        |> Decimal.add(result)
+        |> Decimal.add(Decimal.mult(price, multiplier))
 
       {:ok, value}
     rescue
