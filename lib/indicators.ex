@@ -464,9 +464,6 @@ defmodule Quantonex.Indicators do
 
   defp rsi_index(rsi_map, index, period) when index < period, do: rsi_map
 
-  defp rsi_index(%{:down_average => @zero} = rsi_map, _index, _period),
-    do: %{rsi_map | value: Decimal.new(100)}
-
   defp rsi_index(
          %{
            :down_average => down_average,
@@ -488,9 +485,6 @@ defmodule Quantonex.Indicators do
 
   defp rsi_strength(%{:down_average => @zero} = rsi_map, index, period) when index < period,
     do: rsi_map
-
-  # no down movements
-  defp rsi_strength(%{:down_average => @zero} = rsi_map, _index, _period), do: rsi_map
 
   defp rsi_strength(
          %{
