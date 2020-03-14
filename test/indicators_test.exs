@@ -42,82 +42,31 @@ defmodule Quantonex.IndicatorsTest do
       assert Indicators.ema(dataset, 1) == {:error, error_message}
     end
 
-    test "float dataset" do
-      dataset = [
-        22.2734,
-        22.194,
-        22.0847,
-        22.1741,
-        22.184,
-        22.1344,
-        22.2337,
-        22.4323,
-        22.2436,
-        22.2933,
-        22.1542,
-        22.3926
-      ]
+    test "verify dataset" do
+      period = 10
 
-      expected_results = [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        Decimal.new("22.22475"),
-        Decimal.new("22.21192272727272727272727272"),
-        Decimal.new("22.24477314049586776859504132")
-      ]
+      test_data = parse_ema_test_data()
 
-      {:ok, actual} = Indicators.ema(dataset, 10)
+      dataset =
+        test_data
+        |> Enum.map(fn x ->
+          {price, _ema} = x
 
-      verify_results(actual, expected_results)
-    end
+          price
+        end)
 
-    test "integer dataset" do
-      dataset = 1..10 |> Enum.map(fn x -> x end)
+      {:ok, actual} = Indicators.ema(dataset, period)
 
-      expected_results = [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        Decimal.new(5),
-        Decimal.new(6)
-      ]
+      test_data
+      |> Enum.with_index()
+      |> Enum.each(fn x ->
+        {{_price, expected_ema}, index} = x
 
-      {:ok, actual} = Indicators.ema(dataset, 9)
+        actual_ema = Enum.at(actual, index)
 
-      verify_results(actual, expected_results)
-    end
-
-    test "string dataset" do
-      dataset = 1..10 |> Enum.map(fn x -> Integer.to_string(x) end)
-
-      expected_results = [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        Decimal.new(5),
-        Decimal.new(6)
-      ]
-
-      {:ok, actual} = Indicators.ema(dataset, 9)
-
-      verify_results(actual, expected_results)
+        assert Decimal.equal?(actual_ema, expected_ema),
+               "Expected #{expected_ema}, but was #{actual_ema}!"
+      end)
     end
 
     test "float dataset with period equal to the length of the dataset" do
@@ -471,8 +420,26 @@ defmodule Quantonex.IndicatorsTest do
 
   ## Helpers
 
-  defp parse_rsi_test_data() do
+  defp parse_ema_test_data() do
     # test data taken from: https://school.stockcharts.com/doku.php?id=technical_indicators:vwap_intraday
+
+    test_data_path = Path.join([@test_data_path, "ema_test_data"])
+
+    lines = File.read!(test_data_path) |> String.split("\n", trim: true)
+
+    lines
+    |> Enum.slice(1..(length(lines) - 1))
+    |> Enum.map(&String.split(&1, ","))
+    |> Enum.map(fn x ->
+      price = Decimal.new(Enum.at(x, 0))
+      ema = Decimal.new(Enum.at(x, 1))
+
+      {price, ema}
+    end)
+  end
+
+  defp parse_rsi_test_data() do
+    # test data taken from: https://school.stockcharts.com/doku.php?id=technical_indicators:moving_averages
 
     test_data_path = Path.join([@test_data_path, "rsi_test_data"])
 
