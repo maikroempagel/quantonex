@@ -176,6 +176,18 @@ defmodule Quantonex.IndicatorsTest do
       assert Indicators.rsi(dataset, 3) == {:error, @dataset_min_size_error}
     end
 
+    test "non-numeric dataset" do
+      invalid_element = "a"
+      dataset = [invalid_element]
+
+      error_message =
+        "An error occured while calculating the RSI value: invalid_operation: number parsing syntax: #{
+          invalid_element
+        }"
+
+      assert Indicators.rsi(dataset, 1) == {:error, error_message}
+    end
+
     test "simple moving average" do
       period = 14
 
