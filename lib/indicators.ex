@@ -526,15 +526,6 @@ defmodule Quantonex.Indicators do
     end
   end
 
-  defp rsi_down_movement(price1, price2) do
-    diff = Decimal.sub(price2, price1)
-
-    case Decimal.lt?(diff, 0) do
-      true -> Decimal.abs(diff)
-      false -> @zero
-    end
-  end
-
   defp rsi_up_average(current_rsi, _previous_rsi, index, period) when index < period,
     do: current_rsi
 
@@ -567,15 +558,6 @@ defmodule Quantonex.Indicators do
     case Decimal.gt?(diff, 0) do
       true -> %{rsi_map | up_movement: diff}
       false -> %{rsi_map | up_movement: @zero}
-    end
-  end
-
-  defp rsi_up_movement(price1, price2) do
-    diff = Decimal.sub(price2, price1)
-
-    case Decimal.gt?(diff, 0) do
-      true -> diff
-      false -> @zero
     end
   end
 
