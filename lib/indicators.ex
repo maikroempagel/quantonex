@@ -148,13 +148,6 @@ defmodule Quantonex.Indicators do
     end
   end
 
-  @typedoc """
-  Represents a relative strength index (RSI).
-  """
-  @type relative_strength_index :: %{
-          value: Decimal.t()
-        }
-
   @doc """
   Calculates a list of relative strength indexes (RSIs) for a given dataset.
   """
@@ -163,132 +156,69 @@ defmodule Quantonex.Indicators do
           period :: non_neg_integer()
         ) ::
           {:error, reason :: String.t()}
-          | {:ok, values :: nonempty_list(RSI.t())}
+          | {:ok, values :: nonempty_list(Decimal.t())}
 
   def rsi([], _period), do: {:error, @dataset_min_size_error}
 
   def rsi(dataset, period) do
     try do
+      init_map = %{
+        current_price: @zero,
+        previous_price: @zero,
+        up_movement: @zero,
+        up_sum: @zero,
+        down_movement: @zero,
+        down_sum: @zero,
+        up_average: @zero,
+        down_average: @zero,
+        relative_strength: @zero,
+        value: @zero
+      }
+
       results =
         dataset
         |> Enum.map(&to_decimal/1)
         |> Enum.with_index()
-        |> Enum.reduce(fn x, acc ->
-          {current_price, index} = x
+        |> Enum.reduce(fn price_with_index, acc ->
+          {current_price, index} = price_with_index
 
-          case acc do
-            # the first iteration
-            {previous_price, _} ->
-              {up_movement, down_movement} = up_and_down_movements(previous_price, current_price)
+          {previous_rsi, previous_items} =
+            case acc do
+              # the first iteration and initialization of our result rsi dataset
+              {first_price, _index} ->
+                previous_rsi = %{init_map | current_price: first_price}
 
-              previous_value = %{
-                price: previous_price,
-                relative_strength: @zero,
-                value: @zero
-              }
+                {
+                  previous_rsi,
+                  [previous_rsi]
+                }
 
-              current_value = %{
-                price: current_price,
-                up_sum: up_movement,
-                down_sum: down_movement,
-                relative_strength: @zero,
-                value: @zero
-              }
+              [previous_rsi | _tail] ->
+                {previous_rsi, acc}
+            end
 
-              [current_value, previous_value]
+          current_rsi =
+            init_map
+            |> Map.replace(:current_price, current_price)
+            |> Map.replace(:previous_price, previous_rsi.current_price)
+            |> rsi_up_movement()
+            |> rsi_down_movement()
+            |> rsi_up_sum(previous_rsi)
+            |> rsi_down_sum(previous_rsi)
+            |> rsi_up_average(previous_rsi, index, period)
+            |> rsi_down_average(previous_rsi, index, period)
+            |> rsi_strength(index, period)
+            |> rsi_index(index, period)
 
-            [previous | _tail] = list ->
-              {up_movement, down_movement} = up_and_down_movements(previous.price, current_price)
-
-              up_sum = Decimal.add(up_movement, previous.up_sum)
-              down_sum = Decimal.add(down_movement, previous.down_sum)
-
-              {up_average, down_average, relative_strength, relative_strength_index} =
-                case index do
-                  # no RSI
-                  x when x < period ->
-                    {@zero, @zero}
-                    |> rsi2()
-
-                  # first calculation of the RSI
-                  x when x == period ->
-                    up_average = calculate_simple_moving_average([up_sum], period)
-                    down_average = calculate_simple_moving_average([down_sum], period)
-
-                    {up_average, down_average}
-                    |> rsi2()
-
-                  # subsequent calculations of the RSI
-                  x when x > period ->
-                    up_average =
-                      Decimal.mult(previous.up_average, Decimal.new(period - 1))
-                      |> Decimal.add(up_movement)
-                      |> Decimal.div(Decimal.new(period))
-
-                    down_average =
-                      Decimal.mult(previous.down_average, Decimal.new(period - 1))
-                      |> Decimal.add(down_movement)
-                      |> Decimal.div(Decimal.new(period))
-
-                    {relative_strength, relative_strength_index} =
-                      calculate_relative_strength_index2(up_average, down_average)
-
-                    {
-                      up_average,
-                      down_average,
-                      relative_strength,
-                      relative_strength_index
-                    }
-                end
-
-              current_value = %{
-                price: current_price,
-                up_sum: up_sum,
-                down_sum: down_sum,
-                up_average: up_average,
-                down_average: down_average,
-                relative_strength: relative_strength,
-                value: relative_strength_index
-              }
-
-              [current_value | list]
-          end
+          [current_rsi | previous_items]
         end)
+        |> Enum.map(fn x -> x.value end)
         |> Enum.reverse()
 
       {:ok, results}
     rescue
       e in Decimal.Error ->
         {:error, "An error occured while calculating the RSI value: " <> e.message}
-    end
-  end
-
-  defp rsi2({@zero = up_average, @zero = down_average}),
-    do: {up_average, down_average, @zero, @zero}
-
-  defp rsi2({up_average, down_average}) do
-    {relative_strength, relative_strength_index} =
-      calculate_relative_strength_index2(up_average, down_average)
-
-    {up_average, down_average, relative_strength, relative_strength_index}
-  end
-
-  defp calculate_relative_strength_index2(up_average, down_average) do
-    max_rsi = Decimal.new(100)
-
-    # no down movements
-    if Decimal.equal?(down_average, Decimal.new(0)) do
-      {0, max_rsi}
-    else
-      relative_strength = Decimal.div(up_average, down_average)
-
-      # RSI: 100 – 100 / ( 1 + relative_strength)
-      first_calc = Decimal.new(1) |> Decimal.add(relative_strength)
-      second_calc = Decimal.div(max_rsi, first_calc)
-
-      relative_strength_index = Decimal.sub(max_rsi, second_calc)
-
-      {relative_strength, relative_strength_index}
     end
   end
 
@@ -467,7 +397,7 @@ defmodule Quantonex.Indicators do
   def vwap(
         %DataPoint{} = data_point,
         cumulative_volume \\ 0,
-        cumulative_volume_price \\ Decimal.new(0)
+        cumulative_volume_price \\ @zero
       ) do
     try do
       average_price =
@@ -508,6 +438,153 @@ defmodule Quantonex.Indicators do
 
   defp calculate_average(sum, divisor), do: Decimal.div(sum, Decimal.new(divisor))
 
+  defp rsi_down_average(current_rsi, _previous_rsi, index, period) when index < period,
+    do: current_rsi
+
+  defp rsi_down_average(%{:down_sum => down_sum} = current_rsi, _previous_rsi, index, period)
+       when index == period do
+    %{current_rsi | down_average: calculate_simple_moving_average([down_sum], period)}
+  end
+
+  defp rsi_down_average(
+         %{:down_movement => current_down_movement} = current_rsi,
+         %{
+           :down_average => previous_down_average
+         } = _previous_rsi,
+         _index,
+         period
+       ) do
+    down_average =
+      Decimal.mult(previous_down_average, Decimal.new(period - 1))
+      |> Decimal.add(current_down_movement)
+      |> Decimal.div(Decimal.new(period))
+
+    %{current_rsi | down_average: down_average}
+  end
+
+  defp rsi_index(rsi_map, index, period) when index < period, do: rsi_map
+
+  defp rsi_index(%{:down_average => @zero} = rsi_map, _index, _period),
+    do: %{rsi_map | value: Decimal.new(100)}
+
+  defp rsi_index(
+         %{
+           :down_average => down_average,
+           :relative_strength => relative_strength
+         } = rsi_map,
+         _index,
+         _period
+       ) do
+    max_rsi = Decimal.new(100)
+
+    # RSI: 100 – 100 / ( 1 + relative_strength)
+    first_calc = Decimal.new(1) |> Decimal.add(relative_strength)
+    second_calc = Decimal.div(max_rsi, first_calc)
+
+    relative_strength_index = Decimal.sub(max_rsi, second_calc)
+
+    %{rsi_map | value: relative_strength_index}
+  end
+
+  defp rsi_strength(%{:down_average => @zero} = rsi_map, index, period) when index < period,
+    do: rsi_map
+
+  # no down movements
+  defp rsi_strength(%{:down_average => @zero} = rsi_map, _index, _period), do: rsi_map
+
+  defp rsi_strength(
+         %{
+           :up_average => up_average,
+           :down_average => down_average
+         } = rsi_map,
+         _index,
+         _period
+       ) do
+    %{rsi_map | relative_strength: Decimal.div(up_average, down_average)}
+  end
+
+  defp rsi_up_sum(
+         %{:up_movement => up_movement} = current_rsi,
+         %{:up_sum => up_sum} = _previous_rsi
+       ) do
+    up_sum = Decimal.add(up_movement, up_sum)
+
+    %{current_rsi | up_sum: up_sum}
+  end
+
+  defp rsi_down_sum(
+         %{:down_movement => down_movement} = current_rsi,
+         %{:down_sum => down_sum} = _previous_rsi
+       ) do
+    down_sum = Decimal.add(down_movement, down_sum)
+
+    %{current_rsi | down_sum: down_sum}
+  end
+
+  defp rsi_down_movement(
+         %{:previous_price => previous_price, :current_price => current_price} = rsi_map
+       ) do
+    diff = Decimal.sub(current_price, previous_price)
+
+    case Decimal.lt?(diff, 0) do
+      true -> %{rsi_map | down_movement: Decimal.abs(diff)}
+      false -> %{rsi_map | down_movement: @zero}
+    end
+  end
+
+  defp rsi_down_movement(price1, price2) do
+    diff = Decimal.sub(price2, price1)
+
+    case Decimal.lt?(diff, 0) do
+      true -> Decimal.abs(diff)
+      false -> @zero
+    end
+  end
+
+  defp rsi_up_average(current_rsi, _previous_rsi, index, period) when index < period,
+    do: current_rsi
+
+  defp rsi_up_average(%{:up_sum => up_sum} = current_rsi, _previous_rsi, index, period)
+       when index == period do
+    %{current_rsi | up_average: calculate_simple_moving_average([up_sum], period)}
+  end
+
+  defp rsi_up_average(
+         %{:up_movement => current_up_movement} = current_rsi,
+         %{
+           :up_average => previous_up_average
+         } = _previous_rsi,
+         _index,
+         period
+       ) do
+    up_average =
+      Decimal.mult(previous_up_average, Decimal.new(period - 1))
+      |> Decimal.add(current_up_movement)
+      |> Decimal.div(Decimal.new(period))
+
+    %{current_rsi | up_average: up_average}
+  end
+
+  defp rsi_up_movement(
+         %{:previous_price => previous_price, :current_price => current_price} = rsi_map
+       ) do
+    diff = Decimal.sub(current_price, previous_price)
+
+    case Decimal.gt?(diff, 0) do
+      true -> %{rsi_map | up_movement: diff}
+      false -> %{rsi_map | up_movement: @zero}
+    end
+  end
+
+  defp rsi_up_movement(price1, price2) do
+    diff = Decimal.sub(price2, price1)
+
+    case Decimal.gt?(diff, 0) do
+      true -> diff
+      false -> @zero
+    end
+  end
+
   defp to_decimal(value) when is_float(value), do: Decimal.from_float(value)
   # create decimals from either strings, integers or decimals
   defp to_decimal(value), do: Decimal.new(value)
@@ -517,30 +594,5 @@ defmodule Quantonex.Indicators do
 
     Decimal.new(2)
     |> Decimal.div(period_increment)
-  end
-
-  defp up_movement(price1, price2) do
-    diff = Decimal.sub(price2, price1)
-
-    case Decimal.gt?(diff, 0) do
-      true -> diff
-      false -> Decimal.new(0)
-    end
-  end
-
-  defp down_movement(price1, price2) do
-    diff = Decimal.sub(price2, price1)
-
-    case Decimal.lt?(diff, 0) do
-      true -> Decimal.abs(diff)
-      false -> Decimal.new(0)
-    end
-  end
-
-  defp up_and_down_movements(price1, price2) do
-    up = up_movement(price1, price2)
-    down = down_movement(price1, price2)
-
-    {up, down}
   end
 end

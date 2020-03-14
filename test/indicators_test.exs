@@ -196,8 +196,7 @@ defmodule Quantonex.IndicatorsTest do
       |> Enum.each(fn x ->
         {{_price, expected_rsi}, index} = x
 
-        actual_value = Enum.at(actual, index)
-        actual_rsi = actual_value[:value]
+        actual_rsi = Enum.at(actual, index)
 
         assert Decimal.equal?(actual_rsi, expected_rsi),
                "Expected #{expected_rsi}, but was #{actual_rsi}!"
