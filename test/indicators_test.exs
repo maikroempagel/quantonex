@@ -188,7 +188,7 @@ defmodule Quantonex.IndicatorsTest do
       assert Indicators.rsi(dataset, 1) == {:error, error_message}
     end
 
-    test "simple moving average" do
+    test "verify dataset" do
       period = 14
 
       test_data = parse_test_data(:rsi)
