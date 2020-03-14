@@ -391,22 +391,18 @@ defmodule Quantonex.Indicators do
     values =
       dataset
       |> Enum.reduce_while([], fn data_point, acc ->
-        case acc do
-          [] ->
-            case vwap(data_point, 0, @zero) do
-              {:ok, value} -> {:cont, [value]}
-              {:error, reason} -> {:halt, {:error, reason}}
-            end
+        {cumulative_volume, cumulative_volume_price} =
+          case acc do
+            [] ->
+              {0, @zero}
 
-          [previous_vwap | _tail] ->
-            {:ok, value} =
-              vwap(
-                data_point,
-                previous_vwap[:cumulative_volume],
-                previous_vwap[:cumulative_volume_price]
-              )
+            [previous_vwap | _tail] ->
+              {previous_vwap[:cumulative_volume], previous_vwap[:cumulative_volume_price]}
+          end
 
-            {:cont, [value | acc]}
+        case vwap(data_point, cumulative_volume, cumulative_volume_price) do
+          {:ok, value} -> {:cont, [value | acc]}
+          {:error, reason} -> {:halt, {:error, reason}}
         end
       end)
 
