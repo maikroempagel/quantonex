@@ -45,7 +45,6 @@ defmodule Quantonex.IndicatorsTest do
     end
 
     test "float dataset" do
-      # todo: test length == period!!!!
       dataset = [
         22.2734,
         22.194,
@@ -585,11 +584,11 @@ defmodule Quantonex.IndicatorsTest do
         high: Decimal.from_float(127.36),
         low: Decimal.from_float(126.99),
         close: Decimal.from_float(127.28),
-        volume: 89329
+        volume: 89_329
       }
 
       expected_vwap = %{
-        cumulative_volume: 89329,
+        cumulative_volume: 89_329,
         cumulative_volume_price: Decimal.from_float(11_363_542.09),
         value: Decimal.from_float(127.21)
       }

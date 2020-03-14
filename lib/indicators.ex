@@ -128,7 +128,7 @@ defmodule Quantonex.Indicators do
           {:error, reason :: String.t()} | {:ok, value :: Decimal.t()}
   def ema(price, period, previous_ema) do
     try do
-      multiplier = weighted_multiplier(period) |> IO.inspect(label: :weighted)
+      multiplier = weighted_multiplier(period)
 
       result =
         previous_ema
