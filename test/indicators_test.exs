@@ -230,12 +230,7 @@ defmodule Quantonex.IndicatorsTest do
     test "simple moving average" do
       period = 14
 
-      IO.puts(__ENV__.file)
-      IO.puts(@test_data_path)
-      {:ok, files} = File.ls(@test_data_path)
-      files |> Enum.each(&IO.puts/1)
-
-      test_data = parse_rsi_test_data() |> IO.inspect()
+      test_data = parse_rsi_test_data()
 
       dataset =
         test_data
@@ -486,7 +481,6 @@ defmodule Quantonex.IndicatorsTest do
     lines
     |> Enum.slice(1..(length(lines) - 1))
     |> Enum.map(&String.split(&1, ","))
-    |> IO.inspect()
     |> Enum.map(fn x ->
       price = Decimal.new(Enum.at(x, 0))
       rsi = Decimal.new(Enum.at(x, 1))
