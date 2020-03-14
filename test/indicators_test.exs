@@ -8,6 +8,8 @@ defmodule Quantonex.IndicatorsTest do
 
   doctest Quantonex.Indicators
 
+  @test_data_path Path.expand("../test/data", __DIR__)
+
   @dataset_min_size_error "There must be at least 1 element in the dataset."
   @period_min_value_error "Period must be at least 1."
 
@@ -472,7 +474,7 @@ defmodule Quantonex.IndicatorsTest do
   defp parse_rsi_test_data() do
     # test data taken from: https://school.stockcharts.com/doku.php?id=technical_indicators:vwap_intraday
 
-    test_data_path = Path.join([__DIR__, "data", "rsi_test_data"])
+    test_data_path = Path.join([@test_data_path, "rsi_test_data"])
     lines = File.read!(test_data_path) |> String.split("\r\n", trim: true)
 
     lines
@@ -490,7 +492,7 @@ defmodule Quantonex.IndicatorsTest do
   defp parse_vwap_test_data() do
     # test data taken from: https://school.stockcharts.com/doku.php?id=technical_indicators:vwap_intraday
 
-    test_data_path = Path.join([__DIR__, "data", "vwap_test_data"])
+    test_data_path = Path.join([@test_data_path, "vwap_test_data"])
     lines = File.read!(test_data_path) |> String.split("\r\n", trim: true)
 
     lines
