@@ -230,6 +230,11 @@ defmodule Quantonex.IndicatorsTest do
     test "simple moving average" do
       period = 14
 
+      IO.puts(__ENV__.file)
+      IO.puts(@test_data_path)
+      {:ok, files} = File.ls(@test_data_path)
+      files |> Enum.each(&IO.puts/1)
+
       test_data = parse_rsi_test_data() |> IO.inspect()
 
       dataset =
