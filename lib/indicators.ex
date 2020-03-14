@@ -167,10 +167,7 @@ defmodule Quantonex.Indicators do
 
   def rsi([], _period), do: {:error, @dataset_min_size_error}
 
-  def rsi(dataset, period),
-    do: calculate_rsi(dataset, period, &calculate_simple_moving_average/2)
-
-  defp calculate_rsi(dataset, period, fun) do
+  def rsi(dataset, period) do
     try do
       results =
         dataset
@@ -215,8 +212,8 @@ defmodule Quantonex.Indicators do
 
                   # first calculation of the RSI
                   x when x == period ->
-                    up_average = fun.([up_sum], period)
-                    down_average = fun.([down_sum], period)
+                    up_average = calculate_simple_moving_average([up_sum], period)
+                    down_average = calculate_simple_moving_average([down_sum], period)
 
                     {up_average, down_average}
                     |> rsi2()
