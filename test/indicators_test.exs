@@ -45,7 +45,7 @@ defmodule Quantonex.IndicatorsTest do
     test "verify dataset" do
       period = 10
 
-      test_data = parse_ema_test_data()
+      test_data = parse_test_data(:ema)
 
       dataset =
         test_data
@@ -179,7 +179,7 @@ defmodule Quantonex.IndicatorsTest do
     test "simple moving average" do
       period = 14
 
-      test_data = parse_rsi_test_data()
+      test_data = parse_test_data(:rsi)
 
       dataset =
         test_data
@@ -314,7 +314,7 @@ defmodule Quantonex.IndicatorsTest do
     end
 
     test "verify dataset" do
-      test_data = parse_vwap_test_data()
+      test_data = parse_test_data(:vwap)
 
       dataset =
         test_data
@@ -420,17 +420,27 @@ defmodule Quantonex.IndicatorsTest do
 
   ## Helpers
 
-  defp parse_ema_test_data() do
-    # test data taken from: https://school.stockcharts.com/doku.php?id=technical_indicators:vwap_intraday
+  defp lines(filename) do
+    Path.join([@test_data_path, filename])
+    |> File.read!()
+    |> String.split("\n", trim: true)
+  end
 
-    test_data_path = Path.join([@test_data_path, "ema_test_data"])
+  # used as a guard against parse errors
+  defp map_lines([], _fun), do: nil
 
-    lines = File.read!(test_data_path) |> String.split("\n", trim: true)
-
+  defp map_lines(lines, fun) do
     lines
     |> Enum.slice(1..(length(lines) - 1))
     |> Enum.map(&String.split(&1, ","))
-    |> Enum.map(fn x ->
+    |> Enum.map(fn x -> fun.(x) end)
+  end
+
+  defp parse_test_data(:ema) do
+    # test data taken from: https://school.stockcharts.com/doku.php?id=technical_indicators:vwap_intraday
+
+    lines("ema_test_data")
+    |> map_lines(fn x ->
       price = Decimal.new(Enum.at(x, 0))
       ema = Decimal.new(Enum.at(x, 1))
 
@@ -438,17 +448,11 @@ defmodule Quantonex.IndicatorsTest do
     end)
   end
 
-  defp parse_rsi_test_data() do
+  defp parse_test_data(:rsi) do
     # test data taken from: https://school.stockcharts.com/doku.php?id=technical_indicators:moving_averages
 
-    test_data_path = Path.join([@test_data_path, "rsi_test_data"])
-
-    lines = File.read!(test_data_path) |> String.split("\n", trim: true)
-
-    lines
-    |> Enum.slice(1..(length(lines) - 1))
-    |> Enum.map(&String.split(&1, ","))
-    |> Enum.map(fn x ->
+    lines("rsi_test_data")
+    |> map_lines(fn x ->
       price = Decimal.new(Enum.at(x, 0))
       rsi = Decimal.new(Enum.at(x, 1))
 
@@ -456,17 +460,11 @@ defmodule Quantonex.IndicatorsTest do
     end)
   end
 
-  defp parse_vwap_test_data() do
+  defp parse_test_data(:vwap) do
     # test data taken from: https://school.stockcharts.com/doku.php?id=technical_indicators:vwap_intraday
 
-    test_data_path = Path.join([@test_data_path, "vwap_test_data"])
-
-    lines = File.read!(test_data_path) |> String.split("\n", trim: true)
-
-    lines
-    |> Enum.slice(1..(length(lines) - 1))
-    |> Enum.map(&String.split(&1, ","))
-    |> Enum.map(fn x ->
+    lines("vwap_test_data")
+    |> map_lines(fn x ->
       data_point = %DataPoint{
         high: Decimal.new(Enum.at(x, 0)),
         low: Decimal.new(Enum.at(x, 1)),
