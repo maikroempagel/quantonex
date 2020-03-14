@@ -481,10 +481,7 @@ defmodule Quantonex.IndicatorsTest do
 
     test_data_path = Path.join([@test_data_path, "rsi_test_data"])
 
-    lines =
-      File.read!(test_data_path)
-      |> String.split("\r\n", trim: true)
-      |> String.split("\n", trim: true)
+    lines = File.read!(test_data_path) |> String.split("\n", trim: true)
 
     lines
     |> Enum.slice(1..(length(lines) - 1))
@@ -503,10 +500,7 @@ defmodule Quantonex.IndicatorsTest do
 
     test_data_path = Path.join([@test_data_path, "vwap_test_data"])
 
-    lines =
-      File.read!(test_data_path)
-      |> String.split("\r\n", trim: true)
-      |> String.split("\n", trim: true)
+    lines = File.read!(test_data_path) |> String.split("\n", trim: true)
 
     lines
     |> Enum.slice(1..(length(lines) - 1))
