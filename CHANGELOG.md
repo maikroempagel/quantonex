@@ -5,4 +5,9 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [v0.1.1](https://github.com/maikroempagel/quantonex/compare/0.1.0...v0.1.1) (2020-03-14)
+
+
+
+
 ## [0.1.0](https://github.com/maikroempagel/quantonex/compare/0.1.0...0.1.0) (2020-02-29)
