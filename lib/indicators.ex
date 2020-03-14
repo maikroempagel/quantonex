@@ -464,14 +464,7 @@ defmodule Quantonex.Indicators do
 
   defp rsi_index(rsi_map, index, period) when index < period, do: rsi_map
 
-  defp rsi_index(
-         %{
-           :down_average => down_average,
-           :relative_strength => relative_strength
-         } = rsi_map,
-         _index,
-         _period
-       ) do
+  defp rsi_index(%{:relative_strength => relative_strength} = rsi_map, _index, _period) do
     max_rsi = Decimal.new(100)
 
     # RSI: 100 – 100 / ( 1 + relative_strength)
