@@ -5,6 +5,15 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [v0.1.2](https://github.com/maikroempagel/quantonex/compare/0.1.1...v0.1.2) (2020-03-15)
+
+
+
+
+### Bug Fixes:
+
+* rsi: Replace deprecated map operations
+
 ## [v0.1.1](https://github.com/maikroempagel/quantonex/compare/0.1.0...v0.1.1) (2020-03-14)
 
 
