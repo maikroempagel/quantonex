@@ -199,8 +199,8 @@ defmodule Quantonex.Indicators do
 
           current_rsi =
             init_map
-            |> Map.replace(:current_price, current_price)
-            |> Map.replace(:previous_price, previous_rsi.current_price)
+            |> Map.put(:current_price, current_price)
+            |> Map.put(:previous_price, previous_rsi.current_price)
             |> rsi_up_movement()
             |> rsi_down_movement()
             |> rsi_up_sum(previous_rsi)
