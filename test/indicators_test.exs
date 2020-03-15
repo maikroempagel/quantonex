@@ -323,6 +323,23 @@ defmodule Quantonex.IndicatorsTest do
       assert Indicators.vwap([data_point]) == {:error, error_message}
     end
 
+    test "invalid data point" do
+      invalid_element = "a"
+
+      data_point = %Quantonex.DataPoint{
+        low: invalid_element,
+        volume: 10
+      }
+
+      error_message =
+        "An error occured while calculating the VWAP value: invalid_operation: number parsing syntax: #{
+          invalid_element
+        }"
+
+      assert Quantonex.Indicators.vwap(data_point) ==
+               {:error, error_message}
+    end
+
     test "verify dataset" do
       test_data = parse_test_data(:vwap)
 
@@ -382,6 +399,22 @@ defmodule Quantonex.IndicatorsTest do
 
       assert Quantonex.Indicators.vwap(data_point, 0, -1) ==
                {:error, "The cumulative volume price can't be negative."}
+    end
+
+    test "invalid data point" do
+      invalid_element = "a"
+
+      data_point = %Quantonex.DataPoint{
+        low: invalid_element
+      }
+
+      error_message =
+        "An error occured while calculating the VWAP value: invalid_operation: number parsing syntax: #{
+          invalid_element
+        }"
+
+      assert Quantonex.Indicators.vwap(data_point, 2, 2) ==
+               {:error, error_message}
     end
 
     test "data point with implicit cumulative volume price" do
