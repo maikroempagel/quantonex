@@ -310,7 +310,7 @@ defmodule Quantonex.IndicatorsTest do
       assert Indicators.vwap(dataset) == {:error, @dataset_min_size_error}
     end
 
-    test "zero volume" do
+    test "zero volume and cumulative volume" do
       data_point = %Quantonex.DataPoint{
         high: Decimal.from_float(127.36),
         low: Decimal.from_float(126.99),
@@ -318,8 +318,7 @@ defmodule Quantonex.IndicatorsTest do
         volume: 0
       }
 
-      error_message =
-        "An error occured while calculating the VWAP value: invalid_operation: 0 / 0"
+      error_message = "The data point volume and cumulative volume can't both be zero."
 
       assert Indicators.vwap([data_point]) == {:error, error_message}
     end
@@ -360,18 +359,29 @@ defmodule Quantonex.IndicatorsTest do
   end
 
   describe "vwap/3" do
-    test "zero volume" do
+    test "zero volume and cumulative volume" do
       data_point = %Quantonex.DataPoint{
-        high: Decimal.from_float(127.36),
-        low: Decimal.from_float(126.99),
-        close: Decimal.from_float(127.28),
         volume: 0
       }
 
-      error_message =
-        "An error occured while calculating the VWAP value: invalid_operation: 0 / 0"
+      assert Quantonex.Indicators.vwap(data_point, 0, 1) ==
+               {:error, "The data point volume and cumulative volume can't both be zero."}
+    end
 
-      assert Indicators.vwap(data_point, 0, 0) == {:error, error_message}
+    test "negative cumulative volume" do
+      data_point = %Quantonex.DataPoint{}
+
+      assert Quantonex.Indicators.vwap(data_point, -1, 1) ==
+               {:error, "The cumulative volume can't be negative."}
+    end
+
+    test "negative cumulative volume price" do
+      data_point = %Quantonex.DataPoint{
+        volume: 10
+      }
+
+      assert Quantonex.Indicators.vwap(data_point, 0, -1) ==
+               {:error, "The cumulative volume price can't be negative."}
     end
 
     test "data point with implicit cumulative volume price" do

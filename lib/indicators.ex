@@ -391,15 +391,29 @@ defmodule Quantonex.Indicators do
   @spec vwap(
           data_point :: DataPoint.t(),
           cumulative_volume :: non_neg_integer(),
-          cumulative_volume_price :: Decimal.t()
+          cumulative_volume_price :: number() | Decimal.t()
         ) ::
           {:error, reason :: String.t()} | {:ok, value :: volume_weighted_average_price()}
-  def vwap(
-        %DataPoint{} = data_point,
-        cumulative_volume \\ 0,
-        cumulative_volume_price \\ @zero
-      ) do
+
+  def vwap(data_point, cumulative_volume \\ 0, cumulative_volume_price \\ 0)
+
+  def vwap(%DataPoint{:volume => volume}, cumulative_volume, _cumulative_volume_price)
+      when volume == 0 and cumulative_volume == 0,
+      do: {:error, "The data point volume and cumulative volume can't both be zero."}
+
+  def vwap(%DataPoint{}, cumulative_volume, _cumulative_volume_price)
+      when is_integer(cumulative_volume) and cumulative_volume < 0,
+      do: {:error, "The cumulative volume can't be negative."}
+
+  def vwap(%DataPoint{}, _cumulative_volume, cumulative_volume_price)
+      when cumulative_volume_price < 0,
+      do: {:error, "The cumulative volume price can't be negative."}
+
+  def vwap(%DataPoint{} = data_point, cumulative_volume, cumulative_volume_price) do
     try do
+      # ensure cumulative volume price can be converted to a decimal
+      cumulative_volume_price = to_decimal(cumulative_volume_price)
+
       average_price =
         data_point.high
         |> Decimal.add(data_point.low)
