@@ -325,7 +325,7 @@ defmodule Quantonex.Indicators do
               {0, @zero}
 
             [previous_vwap | _tail] ->
-              {previous_vwap[:cumulative_volume], previous_vwap[:cumulative_volume_price]}
+              {previous_vwap.cumulative_volume, previous_vwap.cumulative_volume_price}
           end
 
         case vwap(data_point, cumulative_volume, cumulative_volume_price) do

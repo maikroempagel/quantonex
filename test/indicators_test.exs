@@ -344,16 +344,16 @@ defmodule Quantonex.IndicatorsTest do
 
         actual_vwap = Enum.at(actual, index)
 
-        assert actual_vwap[:cumulative_volume] == expected_vwap[:cumulative_volume]
+        assert actual_vwap.cumulative_volume == expected_vwap.cumulative_volume
 
         assert Decimal.equal?(
-                 actual_vwap[:cumulative_volume_price],
-                 expected_vwap[:cumulative_volume_price]
+                 actual_vwap.cumulative_volume_price,
+                 expected_vwap.cumulative_volume_price
                )
 
         assert Decimal.equal?(
-                 actual_vwap[:value],
-                 expected_vwap[:value]
+                 actual_vwap.value,
+                 expected_vwap.value
                )
       end)
     end
