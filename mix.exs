@@ -40,7 +40,7 @@ defmodule Quantonex.MixProject do
     [
       {:credo, "~> 1.2", only: [:dev, :test], runtime: false},
       {:decimal, "~> 1.8"},
-      {:ex_doc, "~> 0.21.3", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.22.0", only: :dev, runtime: false},
       {:excoveralls, "~> 0.12.2", only: :test},
       {:git_ops, "~> 2.0.0", only: :dev}
     ]
