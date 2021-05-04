@@ -39,7 +39,7 @@ defmodule Quantonex.MixProject do
   defp deps do
     [
       {:credo, "~> 1.2", only: [:dev, :test], runtime: false},
-      {:decimal, "~> 1.8"},
+      {:decimal, "~> 2.0"},
       {:ex_doc, "~> 0.21.3", only: :dev, runtime: false},
       {:excoveralls, "~> 0.12.2", only: :test},
       {:git_ops, "~> 2.0.0", only: :dev}
